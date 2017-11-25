@@ -165,15 +165,17 @@ function findPlatforms(mapLines) {
     // We ignore the first and last line because they were added
     var mapLinesNoNeutrals = mapLines.slice(1, mapLines.length - 1);
 
-    var platforms = mapLinesNoNeutrals.map((line, index) => {
+    var platforms = flattenArray(mapLinesNoNeutrals.map((line, index) => {
         // Note that: mapLines.indexOf(line) == index + 1
         var lineOver = mapLines[index];
         var lineUnder = mapLines[index + 2];
 
         return getPlatformsOnLine(line, lineOver, lineUnder, index + 1);
-    });
+    }));
 
-    return addObjectives(mapLines, flattenArray(platforms));
+    var platformsObjectives = platforms.map(platform => addObjectives(mapLines, platform));
+
+    return platformsObjectives;
 }
 
 // Takes 3 lines and the y position of the first line.
@@ -238,32 +240,37 @@ function extendPlatformRight(platform) {
     return newPlatform;
 }
 
-function addObjectives(mapLines, platforms) {
-    return platforms.map(platform => {
+// Adds the objectives over a platform
+function addObjectives(mapLines, platform) {
+    var lineOver = mapLines[platform.y - 1]
+        .slice(platform.xStart, platform.xEnd + 1);
 
-        var lineOver = mapLines[platform.y - 1]
-            .slice(platform.xStart, platform.xEnd + 1);
+    var currentLine = mapLines[platform.y]
+        .slice(platform.xStart, platform.xEnd + 1);
 
-        var currentLine = mapLines[platform.y]
-            .slice(platform.xStart, platform.xEnd + 1);
-
-        var objectives = lineOver.reduce((accum, square, x) => {
-            if (isObjective(square)) {
-                var objective = {
-                    x: x,
-                    y: platform.y - 1,
-                    blockType: square
-                }
-                accum.push(objective);
+    var objectives = lineOver.reduce((accum, square, x) => {
+        if (isObjective(square)) {
+            var objective = {
+                x: x,
+                y: platform.y - 1,
+                blockType: square
             }
+            accum.push(objective);
+        }
 
-            return accum;
-        }, []);
+        return accum;
+    }, []);
 
-        platform.objectives = objectives;
+    platform.objectives = objectives;
 
-        return platform;
-    });
+    return platform;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+//  Step 2
+
+function makePlatformGraph(map, platforms) {
+
 }
 
 /**
