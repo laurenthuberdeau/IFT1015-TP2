@@ -44,6 +44,11 @@ function isNonSolid (block) {
     || block == BlockType.Space;
 }
 
+function isObjective (block) {
+    return block == BlockType.Point 
+        || block == BlockType.End;
+}
+
 /*
 *******************************************************************************
 **  Solving algorithm
