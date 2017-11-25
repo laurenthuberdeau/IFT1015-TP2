@@ -122,21 +122,9 @@ function isObjective (block) {
 
 function start(map) {
     var mapLines = prepareMap(map);
-    var mapLinesNoNeutrals = mapLines.slice(1, mapLines.length - 1);
-    
     //console.log(mapLines.map(line => line.join("")));
-
-    var platforms = mapLinesNoNeutrals.map((line, index) => {
-        // Note that: mapLines.indexOf(line) == index + 1
-        var lineOver = mapLines[index];
-        var lineUnder = mapLines[index + 2];
-
-        return getPlatformsOnLine(line, lineOver, lineUnder, index + 1);
-    });
-    var platforms2 = flattenArray(platforms);
-    //console.log(platforms2);
-    var platforms3 = addObjectives(mapLines, platforms2);
-    console.log(platforms2);
+    
+    var platforms = findPlatforms(mapLines);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -172,16 +160,26 @@ function prepareMap(map) {
 ///////////////////////////////////////////////////////////////////////////////
 //  Step 1
 
+function findPlatforms(mapLines) {
+    var mapLinesNoNeutrals = mapLines.slice(1, mapLines.length - 1);
+
+    var platforms = mapLinesNoNeutrals.map((line, index) => {
+        // Note that: mapLines.indexOf(line) == index + 1
+        var lineOver = mapLines[index];
+        var lineUnder = mapLines[index + 2];
+
+        return getPlatformsOnLine(line, lineOver, lineUnder, index + 1);
+    });
+
+    return addObjectives(mapLines, flattenArray(platforms));
+}
+
 // Takes 3 lines and the y position of the first line.
 // The current line to search for platforms
 // The line right above to check for obstacle on the line
 // The line under to check if an is in mid-air
 // Returns platform on the first line
 function getPlatformsOnLine(line, lineOver, lineUnder, y) {
-    //console.log("getPlatformsOnLine");
-    //console.log(lineOver);
-    //console.log(line);
-    //console.log(lineUnder);
 
     return line.reduce(function (platforms, char, index) {
 
