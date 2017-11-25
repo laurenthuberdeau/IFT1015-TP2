@@ -140,10 +140,24 @@ function start(map) {
  *
  *     {runner: {position: {x: ..., y: ...}}}
  */
+
+var count = 0;
+var right = true;
+
 function next(state) {
+    if (right) {
+        count--;
+    } else {
+        count++;
+    }
+
+    if (count == -15 || count == 15) {
+        right = !right;
+    }
     // TODO : Modifier ici
     // Envoyer une direction au hasard
-    var dir = Math.floor(Math.random() * 4) + 1;
+    //var dir = Math.floor(Math.random() * 4) + 1;
+    var dir = right ? 4 : 2;
     return {event: "move", direction: dir};
 }
 
