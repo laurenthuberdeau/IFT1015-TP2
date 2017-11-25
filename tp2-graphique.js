@@ -1,44 +1,73 @@
-function genererTable(width, height) {
-    // TODO : remplir cette fonction pour générer un <table> HTML de la bonne taille
-    return '<table id="table">' +
-             '<tr>' +
-               '<td id="0-0"></td><td id="0-1"></td><td id="0-2"></td><td id="0-3"></td><td id="0-4"></td>' +
-             '</tr>' +
-             '<tr>' +
-               '<td id="1-0"></td><td id="1-1"></td><td id="1-2"></td><td id="1-3"></td><td id="1-4"></td>' +
-             '</tr>' +
-             '<tr>' +
-               '<td id="2-0"></td><td id="2-1"></td><td id="2-2"></td><td id="2-3"></td><td id="2-4"></td>' +
-             '</tr>' +
-           '</table>';
+// Constants
+const blockDimension = 32; // Fraction entière de 32, dimension des images
+const blockKeys = ["-", "&", "#", "$", "H", "S", "X"];
+const imgDirectory = "img/";
+
+var draw = function (map) {
+    // If every image is loaded
+    var allImagesReady = blockKeys
+        .map(getImage)
+        .filter(img => img.complete)
+        .length != 0;
+
+    // Return early if not every image is loaded
+    if (!allImagesReady)
+        return; 
+
+    var lines = map.split("\n"); // Split map in lines
+
+    // TODO :: Resize canvas based on map size
+
+    var canvas = createCanvas(lines.length * blockDimension, lines[0].length * blockDimension);
+    drawCanvas(canvas.getContext("2d"), lines);
 }
 
-function randomChoice(arr) {
-    return arr[Math.floor(Math.random() * arr.length)];
-}
-
-function draw(map) {
-    // Exemple de génération d'un tableau HTML avec des images aléatoires,
-    // décommentez le code pour voir le résultat
-    /*
+function createCanvas(height, width) {
+    // Create canvas element in DOM
     var container = document.getElementById('grid');
+    container.innerHTML = "<canvas id=\"canvas\"></canvas>";
 
-    var table = genererTable(0, 0);
+    // Set canvas properties
+    var canvas = document.getElementById('canvas');
+    canvas.height = height;
+    canvas.width = width;
 
-    container.innerHTML = table;
+    // Put green background
+    var ctx = canvas.getContext('2d');
+    ctx.fillStyle = "#afa";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    for(var i=0; i<3; i++) {
-        for(var j=0; j<5; j++) {
-            // NOTEZ : "#" a une signification spéciale dans les URLs.
-            // Pour utiliser le path "img/#.png", on doit l'écrire sa forme encodée : img/%23.png
-            var img = 'url("img/' + randomChoice(['%23', '-', '&', 'H', '$']) + '.png';
-
-            document.getElementById(i + '-' + j).style.backgroundImage = img;
-        }
-    }
-    */
-
-    // Affichage temporaire de la grille en ASCII, pour vous aider à débugguer
-    var gridAscii = document.getElementById('grid-ascii');
-    gridAscii.innerHTML = map;
+    return canvas;
 }
+
+function drawCanvas(canvasCtx, lines) {
+    lines.forEach((line, i) => {
+        line.split("").forEach((char, j) => {
+
+            // Do nothing if char doesn't represent a block. i.e a space or something else
+            if (blockKeys.indexOf(char) == -1)
+                return; 
+            
+            var img = getImage(char);
+            var x = j * blockDimension;
+            var y = i * blockDimension;
+
+            // Don't draw image if it's not loaded yet
+            if (img.complete)
+                canvasCtx.drawImage(img, x, y, blockDimension, blockDimension);
+        });
+    });
+}
+
+var getImage = (function () {
+    var images = blockKeys.map(function (name)  {
+        var img = new Image();
+        img.src = imgDirectory + escape(name) + ".png";
+        return img;
+    });
+
+    return function (char) {
+        var index = blockKeys.indexOf(char);
+        return images[index];
+    };
+})();

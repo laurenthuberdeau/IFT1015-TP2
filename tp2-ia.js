@@ -15,6 +15,77 @@ var room = "";
  *   S : sortie
  *   espace vide : rien de spécial sur cette case
  */
+
+/*
+*******************************************************************************
+**  Solving algorithm
+
+    Start function:
+    1: 
+        Find every platform
+        Platform definition:
+            A platform is an horizontal blocks where you can go from one end to
+            the other without moving in the y dimension.
+
+            Note: This is 3 platform: 
+
+                1: from (1,2) to (3,2)
+                2: from (4,1) to (4,1) (One block)
+                3: from (5,2) to (7,2)
+                y
+               x01234567
+                1   #
+                2#######
+
+
+            Platform = {
+                xStart: Int,
+                xEnd: Int,
+                y: Int,
+                length = function () { return this.xEnd - this.xStart + 1; }
+                reachedFrom = [Platform]
+                reachTo = [Platform]
+                objectives = [Objective] 
+            }
+
+            Objective = {
+                blockType = BlockType, // Contains either a $ or S
+                x: Int,
+                y: Int
+            }
+
+        By this definition, we can define a graph between platforms and their connections.
+        Obviously, at step 1, reachedFrom = reachTo = []
+
+        To support level 4 where a point ("$") is not directly above a platform, 
+        a point creates a platform is it's not right above one. In case the end is
+        suspended in mid-air, it also creates a platform. This can be generalized
+        by considering each non-block objective square as a platform to reach.
+
+    2: 
+        Find every connection between platform. 
+        The connections can be detected by:
+            Looking for ladders
+            Looking for edges to fall
+            Looking at removeable blocks
+
+        For each connection, add reference to reached platform to reaching platform and vice-versa
+
+    3: Check if solvable.
+        Check if path exists between start and end
+        We can use a breadth searching algorithm that prevents infinite loop.
+        If exists, yay
+        If not, return error
+
+    4: Translate path between platforms in path between individual positions
+
+    5: Save path in variable accessible to the next function
+
+    Next function:
+    1: Read next position. We don't care about the state as every is static and already computed
+
+*/
+
 function start(map) {
     console.log(map);
 }
