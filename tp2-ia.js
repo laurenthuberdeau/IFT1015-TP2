@@ -160,7 +160,9 @@ function prepareMap(map) {
 ///////////////////////////////////////////////////////////////////////////////
 //  Step 1
 
+// Finds all platforms in map
 function findPlatforms(mapLines) {
+    // We ignore the first and last line because they were added
     var mapLinesNoNeutrals = mapLines.slice(1, mapLines.length - 1);
 
     var platforms = mapLinesNoNeutrals.map((line, index) => {
@@ -228,8 +230,8 @@ function createEmptyPlatform(x,y) {
     };
 }
 
-// This function returns a shallow copy of platform
-// This function extends a platform one block to the right
+// Returns a shallow copy of platform
+// Extends a platform one block to the right
 function extendPlatformRight(platform) {
     var newPlatform = Object.assign({}, platform); // Shallow copy
     newPlatform.xEnd++;
