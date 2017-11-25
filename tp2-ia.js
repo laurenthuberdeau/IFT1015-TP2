@@ -121,7 +121,52 @@ function isObjective (block) {
 */
 
 function start(map) {
-    console.log(map);
+    var mapLines = prepareMap(map);
+    var mapLinesNoNeutrals = mapLines.slice(1, mapLines.length - 1);
+    
+    //console.log(mapLines.map(line => line.join("")));
+
+    var platforms = mapLinesNoNeutrals.map((line, index) => {
+        // Note that: mapLines.indexOf(line) == index + 1
+        var lineOver = mapLines[index];
+        var lineUnder = mapLines[index + 2];
+
+        return getPlatformsOnLine(line, lineOver, lineUnder, index + 1);
+    });
+    var platforms2 = flattenArray(platforms);
+    //console.log(platforms2);
+    var platforms3 = addObjectives(mapLines, platforms2);
+    console.log(platforms2);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+//  Map preparation
+
+// Takes a map and returns it in a easier to use format.
+// It splits the map in arrays of characters and removes the empty lines at
+// beginning and at the end. 
+// It makes sure to put one "neutral" line at the beginning and at the end.
+// prepareMap :: String -> [[Char]]
+function prepareMap(map) {
+    // Split lines
+    var lines = map.split("\n"); 
+
+    // Removes leading empty lines
+    lines = dropWhile(lines, (line => line.trim() == ""));
+    // Removes trailing empty lines
+    lines = dropWhile(lines.reverse(), (line => line.trim() == "")).reverse();
+
+    // Splits lines in [char]
+    lines = lines.map(line => line.split("")); 
+
+    var lineOver = lines[0].map(char => " "); // Neutral top line
+    var lineUnder = lineOver.map(char => "#"); // Neutral under line
+
+    // Add neutral lines
+    var result = [lineOver].concat(lines);
+    result.push(lineUnder);
+
+    return result;
 }
 
 /**
@@ -165,3 +210,25 @@ function next(state) {
 module.exports.room = room;
 module.exports.start = start;
 module.exports.next = next;
+
+
+///////////////////////////////////////////////////////////////////////////////
+//  Utils
+
+// Concat array of arrays together
+// flattenArray :: [[a]] -> [a]
+function flattenArray(arrays) {
+    return arrays.reduce((accum, array) => accum.concat(array), []);
+}
+
+// Drop elements of array from left to right while pred is true
+function dropWhile (arr, pred) {
+    var drop = true;
+    return arr.reduce((accum, elem) => {
+        drop = drop && pred(elem);
+        if (!drop)
+            accum.push(elem);
+
+        return accum;
+    }, []);
+}
