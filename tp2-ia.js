@@ -169,6 +169,101 @@ function prepareMap(map) {
     return result;
 }
 
+///////////////////////////////////////////////////////////////////////////////
+//  Step 1
+
+// Takes 3 lines and the y position of the first line.
+// The current line to search for platforms
+// The line right above to check for obstacle on the line
+// The line under to check if an is in mid-air
+// Returns platform on the first line
+function getPlatformsOnLine(line, lineOver, lineUnder, y) {
+    //console.log("getPlatformsOnLine");
+    //console.log(lineOver);
+    //console.log(line);
+    //console.log(lineUnder);
+
+    return line.reduce(function (platforms, char, index) {
+
+        // Check if block is a platform
+        // And if block isn't blocked by a block on top, else pass
+        if (isSolid(char) && !isSolid(lineOver[index])) {
+
+            // Checks if a platform exists right next to the position were evaluating
+            if (platforms.length > 0 
+                && platforms[platforms.length - 1].xEnd == index - 1) {
+
+                var platform = platforms[platforms.length - 1];
+                var newPlatform = extendPlatformRight(platform);
+
+                platforms[platforms.length - 1] = newPlatform;
+                return platforms
+            }
+            
+            // Else, we create a new one
+            var newPlatform = createEmptyPlatform(index, y);
+            platforms.push(newPlatform);
+            return platforms;
+        }
+
+        // We add a platform in the case of an floating objective
+        if (isObjective(char) && !isSolid(lineUnder[index])) {
+            var newPlatform = createEmptyPlatform(index, y + 1);
+            platforms.push(newPlatform);
+            return platforms;
+        }
+
+        return platforms;
+    }, []);
+}
+
+// Creates an empty platform at coordinates (x,y) of length 1
+function createEmptyPlatform(x,y) {
+    return {
+        xStart: x,
+        xEnd: x,
+        y: y,
+        length: function () { return this.xEnd - this.xStart + 1; },
+        reachedFrom: [],
+        reachTo: [],
+        objectives: []
+    };
+}
+
+// This function returns a shallow copy of platform
+// This function extends a platform one block to the right
+function extendPlatformRight(platform) {
+    var newPlatform = Object.assign({}, platform); // Shallow copy
+    newPlatform.xEnd++;
+    return newPlatform;
+}
+
+function addObjectives(mapLines, platforms) {
+    return platforms.map(platform => {
+
+        var lineOver = mapLines[platform.y - 1]
+            .slice(platform.xStart, platform.xEnd + 1);
+
+        var currentLine = mapLines[platform.y]
+            .slice(platform.xStart, platform.xEnd + 1);
+
+        var objectives = lineOver.reduce((accum, square, x) => {
+            if (isObjective(square)) {
+                var objective = {
+                    x: x,
+                    y: platform.y - 1,
+                    blockType: square
+                }
+                accum.push(objective);
+            }
+
+            return accum;
+        }, []);
+
+        platform.objectives = objectives;
+    });
+}
+
 /**
  * La fonction `next` est appelée automatiquement à
  * chaque tour et doit retourner un enregistrement
