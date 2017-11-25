@@ -15,6 +15,35 @@ var room = "Mario-Laurent";
  *   espace vide : rien de spécial sur cette case
  */
 
+// "Enum" for block types.
+var BlockType = {
+    Brick: "#",
+    Player: "&",
+    Point: "$",
+    Ladder: "H",
+    Rope: "-",
+    End: "S",
+    Space: " ",
+};
+
+// Predicate for blocks that can't be traversed unless removed
+function isSolid (block) {
+    return block == BlockType.Brick;
+}
+
+// Predicate for blocks that can be either solid or non-solid depending on the action
+function isSemiSolid (block) {
+    return block == BlockType.Ladder 
+        || block == BlockType.Rope;
+}
+
+// Predicate for blocks that player can fall through
+function isNonSolid (block) {
+    return block == BlockType.Point 
+    || block == BlockType.End
+    || block == BlockType.Space;
+}
+
 /*
 *******************************************************************************
 **  Solving algorithm
