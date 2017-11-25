@@ -261,6 +261,8 @@ function addObjectives(mapLines, platforms) {
         }, []);
 
         platform.objectives = objectives;
+
+        return platform;
     });
 }
 
