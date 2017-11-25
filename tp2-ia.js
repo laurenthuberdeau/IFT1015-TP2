@@ -75,10 +75,11 @@ function isObjective (block) {
                 xStart: Int,
                 xEnd: Int,
                 y: Int,
-                length = function () { return this.xEnd - this.xStart + 1; }
-                reachedFrom = [Platform]
-                reachTo = [Platform]
-                objectives = [Objective] 
+                length: function () { return this.xEnd - this.xStart + 1; }
+                reachedFrom: [Platform],
+                reachTo: [Platform],
+                objectives: [Objective],
+                isStart: Bool
             }
 
             Objective = {
@@ -91,7 +92,7 @@ function isObjective (block) {
         Obviously, at step 1, reachedFrom = reachTo = []
 
         To support level 4 where a point ("$") is not directly above a platform, 
-        a point creates a platform is it's not right above one. In case the end is
+        a point creates a platform if it's not right above one. In case the end is
         suspended in mid-air, it also creates a platform. This can be generalized
         by considering each non-block objective square as a platform to reach.
 
