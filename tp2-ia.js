@@ -1,5 +1,4 @@
-// TODO : modifier cette valeur avec la clé secrète
-var room = "";
+var room = "Mario-Laurent";
 
 /**
  * La fonction start() est appelée au début
