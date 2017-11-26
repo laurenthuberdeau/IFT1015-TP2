@@ -76,8 +76,14 @@ function isObjective (block) {
                 xEnd: Int,
                 y: Int,
                 length: function () { return this.xEnd - this.xStart + 1; }
-                reachedFrom: [Platform],
-                reachTo: [Platform],
+                reachedFrom: [{
+                    platform: Platform,,
+                    access: Ladder | Rope | Fall
+                }],
+                reachTo: [{
+                    platform: Platform,
+                    access: Ladder | Rope | Fall
+                }],
                 objectives: [Objective],
                 isStart: Bool
             }
@@ -100,8 +106,27 @@ function isObjective (block) {
         Find every connection between platform. 
         The connections can be detected by:
             Looking for ladders
+            Looking for ropes
             Looking for edges to fall
             Looking at removeable blocks
+
+            Ladder = {
+                x: Int,
+                yStart: Int,
+                yEnd: Int
+            }
+
+            Rope = {
+                xStart: Int,
+                xEnd: Int,
+                y: Int
+            }
+
+            Fall = {
+                x: Int,
+                yStart: Int,
+                yEnd: Int
+            }
 
         For each connection, add reference to reached platform to reaching platform and vice-versa
 
@@ -121,10 +146,19 @@ function isObjective (block) {
 */
 
 function start(map) {
+    console.log(map);
     var mapLines = prepareMap(map);
     //console.log(mapLines.map(line => line.join("")));
-    
+
     var platforms = findPlatforms(mapLines);
+
+    makePlatformGraph(mapLines, platforms);
+
+    console.log("\n\n\n\n################################\n");
+    console.log(platforms[0].reachedFrom.length);
+    console.log(platforms[0].reachedFrom.length == platforms[0].reachTo.length);
+    console.log("\n\n\n\n################################\n");
+    console.log(platforms[0].reachedFrom[0].platform.reachedFrom);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -235,7 +269,7 @@ function createEmptyPlatform(x,y) {
 // Returns a shallow copy of platform
 // Extends a platform one block to the right
 function extendPlatformRight(platform) {
-    var newPlatform = Object.assign({}, platform); // Shallow copy
+    var newPlatform = Object.assign({}, platform); // Shallow copy (Necessary?)
     newPlatform.xEnd++;
     return newPlatform;
 }
@@ -261,7 +295,11 @@ function addObjectives(mapLines, platform) {
         return accum;
     }, []);
 
+    console.log(objectives);
+
     platform.objectives = objectives;
+
+    console.log(platform);
 
     return platform;
 }
@@ -269,8 +307,126 @@ function addObjectives(mapLines, platform) {
 ///////////////////////////////////////////////////////////////////////////////
 //  Step 2
 
-function makePlatformGraph(map, platforms) {
+function makePlatformGraph(mapLines, platforms) {
+    var vertices = findVertices(mapLines, platforms);
 
+    var reachablePlatformsFromLadders = vertices.ladders.
+        map(ladder => getPlatformsReachableFromLadder(ladder, platforms));
+
+    // Link platforms together when linked by each ladder
+    reachablePlatformsFromLadders.forEach((reachablePlatformsFromLadder, index) => {
+        var ladder = vertices.ladders[index];
+        var platformAccessPair = reachablePlatformsFromLadder.map(platform => {
+            return {
+                platform: platform,
+                access: ladder
+            };
+        });
+        reachablePlatformsFromLadder.forEach(reachablePlatform => {
+            reachablePlatform.reachedFrom = reachablePlatform.reachedFrom
+                .concat(platformAccessPair);
+            reachablePlatform.reachTo = reachablePlatform.reachTo
+                .concat(platformAccessPair);
+        });
+    });
+
+    // Remove duplicate vertices and self references in platform.reachedFrom and reachTo
+    platforms.forEach((platform, index, platforms) => {
+        console.log(platform.reachedFrom);
+        platform.reachedFrom = removeDuplicate(platform.reachedFrom)
+            .filter(x => x.platform != platform);
+        platform.reachTo = removeDuplicate(platform.reachTo)
+            .filter(x => x.platform != platform);
+    });
+
+    return platforms;
+}
+
+// Find all possible ways to move between platforms.
+// They correspond to vertices in the graph
+// These are:
+// Ladders
+// Ropes
+// Falling (Digging or edge)
+function findVertices(mapLines, platforms) {
+    return {
+        ladders: findLadders(mapLines),
+        ropes: findRopes(mapLines),
+        //falls: find
+    };
+}
+
+function findLadders(mapLines) {
+    return flattenArray(transpose(mapLines).map(findLaddersOnColumn));
+}
+
+function findLaddersOnColumn(column, x) {
+    return column.reduce((ladders, char, index) => {
+
+        if (char == BlockType.Ladder) {
+            // Checks if a ladder exists above to the position were evaluating
+            if (ladders.length > 0 
+                && ladders[ladders.length - 1].yEnd == index - 1) {
+
+                ladders[ladders.length - 1].yEnd++;
+            } else {
+                // We create a new one
+                var newLadder = {
+                    x: x,
+                    yStart: index,
+                    yEnd: index
+                };
+                ladders.push(newLadder);
+            }
+        }
+        
+        return ladders;
+    }, []);
+}
+
+function findRopes(mapLines) {
+    return flattenArray(mapLines.map(findRopeOnLine));
+}
+
+function findRopeOnLine(line, y) {
+    return line.reduce((ropes, char, index) => {
+        if (char == BlockType.Rope) {
+            // Checks if a rope exists right next to the position were evaluating
+            if (ropes.length > 0 
+                && ropes[ropes.length - 1].xEnd == index - 1) {
+
+                ropes[ropes.length - 1].xEnd++;
+            } else {
+                // We create a new one
+                var newRope = {
+                    xStart: index,
+                    xEnd: index,
+                    y: y
+                };
+                ropes.push(newLadder);
+            }
+        }
+        
+        return ropes;
+    }, []);
+}
+
+function findFallsBetweenPlatforms(mapLines, platforms) {
+
+}
+
+function getPlatformsReachableFromLadder(ladder, platforms) {
+    return platforms.filter(platform => {
+        var besidePlatform = 
+            (ladder.x == platform.xStart - 1 || ladder.x == platform.xEnd + 1)  // If beside
+            && (ladder.yStart <= platform.y && ladder.yEnd >= platform.y);      // If share a y
+
+        var overPlatform = 
+            ladder.yEnd == platform.y - 1                                       // If right over
+            && ladder.x >= platform.xStart && ladder.x <= platform.xEnd;        // If share a x
+
+        return besidePlatform || overPlatform;
+    })
 }
 
 /**
