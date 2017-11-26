@@ -371,3 +371,7 @@ function removeDuplicate (array) {
         return accum;
     }, []);
 }
+
+var level2String = "S       $ $ $      H      \n###################H      \n                   H      \n           &       H      \n##########################";
+start(level2String);
+exit();
