@@ -514,26 +514,17 @@ function dropWhile (arr, pred) {
 // Opération de transposition comme en algèbre linéaire
 // arrays est un tableau de tableau.
 // On suppose que les tableaux intérieurs partage la même dimension
-function transpose (arrays) {
+function transpose (mat) {
+    if (mat.length == 0)
+        return [];
+    if (mat[0].length == 0)
+        return [[]];
 
-	var length = Array.isArray(arrays[0]) ? arrays[0].length: 0;
-    // Tableaux de colonnes (Rangées transposées)
-    var resultats = new Array(length).fill(null)
-    	.map(function () {
-            // Crée un nouveau tableau.
-            // Ne pas utiliser fill, car partage référence
-            return new Array(0);
-        });
-
-    // On ajoute les éléments de façon à inverser (i;j)
-    // où i et j représentent leur indice dans la matrice initiale
-    arrays.forEach(function (x) {
-        x.forEach(function (y,i) {
-            resultats[i].push(y);
+    return mat[0].map(function(elem, y) {
+        return mat.map(function(ligne, x) {
+            return mat[x][y]; // Élément de colonne
         });
     });
-
-    return resultats;
 };
 
 // Algorithme naif pas très efficace, mais on ne trie pas de gros tableaux
