@@ -209,7 +209,9 @@ function findPlatforms(mapLines) {
 
     var platformsObjectives = platforms.map(platform => addObjectives(mapLines, platform));
 
-    return platformsObjectives;
+    var taggedPlatforms = tagStart(mapLines, platformsObjectives);
+
+    return taggedPlatforms;
 }
 
 // Takes 3 lines and the y position of the first line.
@@ -262,7 +264,8 @@ function createEmptyPlatform(x,y) {
         length: function () { return this.xEnd - this.xStart + 1; },
         reachedFrom: [],
         reachTo: [],
-        objectives: []
+        objectives: [],
+        isStart: false
     };
 }
 
@@ -302,6 +305,20 @@ function addObjectives(mapLines, platform) {
     console.log(platform);
 
     return platform;
+}
+
+// Set isStart to true for platform where player start
+function tagStart(mapLines, platforms) {
+    return platforms.map(platform => {
+        var isStart = mapLines[platform.y - 1]
+            .filter(char => char == BlockType.Player)
+            .length != 0;
+        
+        if (isStart)
+            platform.isStart = isStart
+        
+        return platform;
+    });
 }
 
 ///////////////////////////////////////////////////////////////////////////////
