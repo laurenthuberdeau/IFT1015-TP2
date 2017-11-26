@@ -336,3 +336,38 @@ function dropWhile (arr, pred) {
         return accum;
     }, []);
 }
+
+// Opération de transposition comme en algèbre linéaire
+// arrays est un tableau de tableau.
+// On suppose que les tableaux intérieurs partage la même dimension
+function transpose (arrays) {
+
+	var length = Array.isArray(arrays[0]) ? arrays[0].length: 0;
+    // Tableaux de colonnes (Rangées transposées)
+    var resultats = new Array(length).fill(null)
+    	.map(function () {
+            // Crée un nouveau tableau.
+            // Ne pas utiliser fill, car partage référence
+            return new Array(0);
+        });
+
+    // On ajoute les éléments de façon à inverser (i;j)
+    // où i et j représentent leur indice dans la matrice initiale
+    arrays.forEach(function (x) {
+        x.forEach(function (y,i) {
+            resultats[i].push(y);
+        });
+    });
+
+    return resultats;
+};
+
+// Algorithme naif pas très efficace, mais on ne trie pas de gros tableaux
+function removeDuplicate (array) {
+    return array.sort().reduce((accum, elem, index) => {
+        if (accum.length >= 0 && accum.length[index - 1] != elem) 
+            accum.push(elem);
+
+        return accum;
+    }, []);
+}
