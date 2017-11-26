@@ -76,14 +76,8 @@ function isObjective (block) {
                 xEnd: Int,
                 y: Int,
                 length: function () { return this.xEnd - this.xStart + 1; }
-                reachedFrom: [{
-                    platform: Platform,,
-                    access: Ladder | Rope | Fall
-                }],
-                reachTo: [{
-                    platform: Platform,
-                    access: Ladder | Rope | Fall
-                }],
+                reachedFrom: [PlatformAccess], // todo: Check if necessary
+                reachTo: [PlatformAccess],
                 objectives: [Objective],
                 isStart: Bool
             }
@@ -126,6 +120,11 @@ function isObjective (block) {
                 x: Int,
                 yStart: Int,
                 yEnd: Int
+            }
+
+            PlatformAccess = {
+                platform: Platform,
+                access: Ladder | Rope | Fall
             }
 
         For each connection, add reference to reached platform to reaching platform and vice-versa
@@ -347,6 +346,8 @@ function makePlatformGraph(mapLines, platforms) {
         });
     });
 
+    // TODO :: Do same thing for ropes and falls
+
     // Remove duplicate vertices and self references in platform.reachedFrom and reachTo
     platforms.forEach((platform, index, platforms) => {
         console.log(platform.reachedFrom);
@@ -369,7 +370,7 @@ function findVertices(mapLines, platforms) {
     return {
         ladders: findLadders(mapLines),
         ropes: findRopes(mapLines),
-        //falls: find
+        //falls: find // TODO
     };
 }
 
@@ -429,7 +430,7 @@ function findRopeOnLine(line, y) {
 }
 
 function findFallsBetweenPlatforms(mapLines, platforms) {
-
+    // TODO
 }
 
 function getPlatformsReachableFromLadder(ladder, platforms) {
