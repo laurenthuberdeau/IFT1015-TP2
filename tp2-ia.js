@@ -421,7 +421,7 @@ function findRopeOnLine(line, y) {
                     xEnd: index,
                     y: y
                 };
-                ropes.push(newLadder);
+                ropes.push(newRope);
             }
         }
         
