@@ -4,6 +4,8 @@ const blockKeys = ["-", "&", "#", "$", "H", "S", "X"];
 const imgDirectory = "img/";
 
 var draw = function (map) {
+    document.getElementById("grid-ascii").innerHTML = map;
+
     // If every image is loaded
     var allImagesReady = blockKeys
         .map(getImage)
