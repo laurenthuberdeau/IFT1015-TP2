@@ -153,16 +153,32 @@ function isObjective (block) {
 
 */
 
+var pathToFollow = [];
+var count = 0;
+
 function start(map) {
+    count = 0;
+    pathToFollow = [];
+
     console.log(map);
     var mapLines = prepareMap(map);
-    //console.log(mapLines.map(line => line.join("")));
+    
+    var startingPosition = findStartingPosition(mapLines);
+    if (startingPosition == -1)
+        throw "Invalid map. Does not contain player.";
 
     var platforms = findPlatforms(mapLines);
+    var graph = makePlatformGraph(mapLines, platforms);
+    // console.log(graph);
+    // exit();
+    var graphSolution = solveGraph(graph);
+    console.log(graphSolution);
+    var path = makePath(startingPosition, graphSolution);
 
-    makePlatformGraph(mapLines, platforms);
+    pathToFollow = path;
 
     console.log("\n\n################################\n");
+    console.log(path);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -735,24 +751,15 @@ function findStartingPosition (mapLines) {
  *     {runner: {position: {x: ..., y: ...}}}
  */
 
-var count = 0;
-var right = true;
 
 function next(state) {
-    if (right) {
-        count--;
-    } else {
-        count++;
-    }
+    if (pathToFollow.length <= count)
+        throw "Solution is finished but level isn't";
 
-    if (count == -15 || count == 15) {
-        right = !right;
-    }
-    // TODO : Modifier ici
-    // Envoyer une direction au hasard
-    //var dir = Math.floor(Math.random() * 4) + 1;
-    var dir = right ? 4 : 2;
-    return {event: "move", direction: dir};
+    var move = {event: "move", direction: pathToFollow[count]};
+    count++;
+    console.log(move);
+    return move;
 }
 
 // XXX Important : ne pas modifier ces lignes
@@ -815,5 +822,5 @@ var level4String = "  $ $$  ------    H       \n#########     ####H       \n    
 var level5String = "H#######  H               \nH         H#$             \nH         H#              \nH         H#------        \nH      H &H#      $       \nH      H####     #########\nH      H#                 \nH      H#   $           S \n##########################";
 var level6String = "                     H######\n  S   H#########H    H#    #\n  ####H         H    H# $ $#\n      H         H    H######\n      H   ------H----H     #\nH#########H     H    H     #\nH         H     H    H     #\nH         H#####H    H     #\n##H###H         H###########\n  H   H         H      #####\n  H   H------   H      # $ #\n####  H     #######H########\n      H            H        \n      H        &   H        \n############################\n";
 
-start(level2String);
-exit();
+// start("    S    $ ----------       H    \n   #########         #######H    \n                            H    \n       $  $    &            H    \n#################################");
+// exit();
