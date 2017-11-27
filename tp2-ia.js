@@ -505,6 +505,56 @@ function getPlatformsReachableFromRope(rope, platforms) {
     });
 }
 
+///////////////////////////////////////////////////////////////////////////////
+//  Step 3
+
+function solveGraph(platformsGraph) {
+    // console.log(platformsGraph);
+    // Suppose there is a start 
+    var origin = {
+        platform: platformsGraph.filter(platform => platform.isStart)[0],
+        access: {} // Empty access. Like an empty ladder
+    };
+
+    var pointsToFind = platformsGraph
+        .reduce((accum, platform) => 
+                    accum.concat(platform.objectives.filter(obj => obj.blockType == BlockType.Point))
+                , []);
+
+    return solveGraphWorker([], origin, pointsToFind, 5);
+}
+
+// Returns -1 if can't find path
+function solveGraphWorker(path, platformAccessPair, pointsToFind, maxRecursionLevel) {
+    if (maxRecursionLevel == 0) 
+        return -1;
+    
+    var platform = platformAccessPair.platform;
+
+    // Remove points that are "found"
+    pointsToFind = pointsToFind.filter(point => platform.objectives.indexOf(point) == -1);
+
+    var pathComplete = platform.isEnd && pointsToFind.length == 0;
+    
+    path = path.concat(platformAccessPair);
+
+    if (pathComplete)
+        return path;
+    if (platform.reachTo.length == 0) // Path is a dead end
+        return -1;
+
+    // Find the shortest path. Each platform/access counts as 1 move, so not very accurate
+    return platform.reachTo.reduce((shortestPath, nextPoint) => {
+        var newPath = solveGraphWorker(path, nextPoint, pointsToFind, maxRecursionLevel - 1);
+        if (newPath == -1) return shortestPath;
+
+        // Select shortest, non-empty path
+        return newPath.length < shortestPath.length || shortestPath.length == 0 
+                ? newPath : shortestPath;
+    }, []);
+}
+
+}
 /**
  * La fonction `next` est appelée automatiquement à
  * chaque tour et doit retourner un enregistrement
