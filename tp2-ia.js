@@ -117,8 +117,8 @@ function isObjective (block) {
 
             Fall = {
                 x: Int,
-                yStart: Int,
-                yEnd: Int
+                y: Int
+                digged: Bool
             }
 
             PlatformAccess = {
@@ -340,6 +340,10 @@ function makePlatformGraph(mapLines, platforms) {
     vertices.ropes.forEach(rope => {
         linkPlatforms(rope, getPlatformsReachableFromRope(rope, platforms));
     });
+    
+    /*vertices.falls.forEach(fall => {
+        linkPlatforms(fall, getPlatformsReachableFromRope(rope, platforms));
+    });*/
 
     // TODO :: Do same thing for falls
 
@@ -362,7 +366,7 @@ function findVertices(mapLines, platforms) {
     return {
         ladders: findLadders(mapLines),
         ropes: findRopes(mapLines),
-        //falls: find // TODO
+        falls: findFalls(mapLines, platforms)
     };
 }
 
@@ -375,7 +379,7 @@ function findLaddersOnColumn(column, x) {
 
         if (char == BlockType.Ladder) {
             // Checks if a ladder exists above to the position were evaluating
-            if (ladders.length > 0 
+            if (ladders.length > 0
                 && ladders[ladders.length - 1].yEnd == index - 1) {
 
                 ladders[ladders.length - 1].yEnd++;
@@ -421,8 +425,44 @@ function findRopeOnLine(line, y) {
     }, []);
 }
 
-function findFallsBetweenPlatforms(mapLines, platforms) {
-    // TODO
+function findFalls(mapLines, platforms) {
+    // todo: Added digging support 
+
+    var width = mapLines[0].length;
+
+    return flattenArray(platforms.map(platform => {
+        
+        var result = [];
+
+        // Fall on the left
+        if (platform.xStart > 0) {
+            result.push({
+                x: platform.xStart - 1,
+                y: platform.y,
+                digged: false
+            });
+        }
+
+        // Fall on the right
+        if (platform.xEnd < width - 1) {
+            result.push({
+                x: platform.xEnd + 1,
+                y: platform.y,
+                digged: false
+            });
+        }
+
+        return result;
+    }));
+}
+
+function findPlatformUnderPosition(platforms, x, y) {
+    var platformsUnder = platforms
+        .filter(platform => platform.xStart <= x && platform.xEnd >= x) // Under x
+        .filter(platform => platform.y > y) // Under y
+        .sort((p1, p2) => p1.y - p2.y);
+
+    return platformsUnder.length != 0 ? platformsUnder[0] : -1;
 }
 
 function linkPlatforms(access, platforms) {
@@ -450,7 +490,7 @@ function getPlatformsReachableFromLadder(ladder, platforms) {
             && ladder.x >= platform.xStart && ladder.x <= platform.xEnd;        // If share a x
 
         return besidePlatform || overPlatform;
-    })
+    });
 }
 
 function getPlatformsReachableFromRope(rope, platforms) {
@@ -462,7 +502,7 @@ function getPlatformsReachableFromRope(rope, platforms) {
         var shareHeight = rope.y + 1 == platform.y
 
         return shareHeight && overPlatform;
-    })
+    });
 }
 
 /**
