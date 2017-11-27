@@ -18,7 +18,7 @@ var room = "Mario-Laurent";
 // "Enum" for block types.
 var BlockType = {
     Brick: "#",
-    Player: "&",
+    Player: '&',
     Point: "$",
     Ladder: "H",
     Rope: "-",
@@ -321,32 +321,19 @@ function tagStart(mapLines, platforms) {
 
 function makePlatformGraph(mapLines, platforms) {
     var vertices = findVertices(mapLines, platforms);
-
-    var reachablePlatformsFromLadders = vertices.ladders.
-        map(ladder => getPlatformsReachableFromLadder(ladder, platforms));
-
-    // Link platforms together when linked by each ladder
-    reachablePlatformsFromLadders.forEach((reachablePlatformsFromLadder, index) => {
-        var ladder = vertices.ladders[index];
-        var platformAccessPair = reachablePlatformsFromLadder.map(platform => {
-            return {
-                platform: platform,
-                access: ladder
-            };
-        });
-        reachablePlatformsFromLadder.forEach(reachablePlatform => {
-            reachablePlatform.reachedFrom = reachablePlatform.reachedFrom
-                .concat(platformAccessPair);
-            reachablePlatform.reachTo = reachablePlatform.reachTo
-                .concat(platformAccessPair);
-        });
+        
+    vertices.ladders.forEach(ladder => {
+        linkPlatforms(ladder, getPlatformsReachableFromLadder(ladder, platforms));
+    });
+    
+    vertices.ropes.forEach(rope => {
+        linkPlatforms(rope, getPlatformsReachableFromRope(rope, platforms));
     });
 
-    // TODO :: Do same thing for ropes and falls
+    // TODO :: Do same thing for falls
 
     // Remove duplicate vertices and self references in platform.reachedFrom and reachTo
     platforms.forEach((platform, index, platforms) => {
-        console.log(platform.reachedFrom);
         platform.reachedFrom = removeDuplicate(platform.reachedFrom)
             .filter(x => x.platform != platform);
         platform.reachTo = removeDuplicate(platform.reachTo)
@@ -429,6 +416,21 @@ function findFallsBetweenPlatforms(mapLines, platforms) {
     // TODO
 }
 
+function linkPlatforms(access, platforms) {
+    var platformAccessPairs = platforms.map(platform => {
+        return {
+            platform: platform,
+            access: access
+        };
+    });
+
+    return platforms.map(platform => {
+        platform.reachedFrom = platform.reachedFrom.concat(platformAccessPairs);
+        platform.reachTo = platform.reachTo.concat(platformAccessPairs);
+        return platform
+    });
+}
+
 function getPlatformsReachableFromLadder(ladder, platforms) {
     return platforms.filter(platform => {
         var besidePlatform = 
@@ -440,6 +442,18 @@ function getPlatformsReachableFromLadder(ladder, platforms) {
             && ladder.x >= platform.xStart && ladder.x <= platform.xEnd;        // If share a x
 
         return besidePlatform || overPlatform;
+    })
+}
+
+function getPlatformsReachableFromRope(rope, platforms) {
+    return platforms.filter(platform => {
+
+        var overPlatform = 
+            rope.xStart <= platform.xEnd + 1 || rope.xEnd >= platform.xStart - 1;
+
+        var shareHeight = rope.y + 1 == platform.y
+
+        return shareHeight && overPlatform;
     })
 }
 
