@@ -15,6 +15,16 @@ var room = "Mario-Laurent";
  *   espace vide : rien de spécial sur cette case
  */
 
+// "Enum" for moves.
+var Moves = {
+    Up: 1,
+    Down: 3,
+    Left: 2,
+    Right: 4,
+    DigLeft: 5,
+    DigRight: 6
+};
+
 // "Enum" for block types.
 var BlockType = {
     Brick: "#",
