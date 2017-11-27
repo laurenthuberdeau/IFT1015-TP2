@@ -287,7 +287,7 @@ function addObjectives(mapLines, platform) {
     var objectives = lineOver.reduce((accum, square, x) => {
         if (isObjective(square)) {
             var objective = {
-                x: x,
+                x: x + platform.xStart,
                 y: platform.y - 1,
                 blockType: square
             }
@@ -297,11 +297,7 @@ function addObjectives(mapLines, platform) {
         return accum;
     }, []);
 
-    console.log(objectives);
-
     platform.objectives = objectives;
-
-    console.log(platform);
 
     return platform;
 }
