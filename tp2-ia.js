@@ -75,11 +75,11 @@ function isObjective (block) {
                 xStart: Int,
                 xEnd: Int,
                 y: Int,
-                length: function () { return this.xEnd - this.xStart + 1; }
                 reachedFrom: [PlatformAccess], // todo: Check if necessary
                 reachTo: [PlatformAccess],
                 objectives: [Objective],
-                isStart: Bool
+                isStart: Bool,
+                isEnd: Bool
             }
 
             Objective = {
@@ -208,7 +208,8 @@ function findPlatforms(mapLines) {
 
     var platformsObjectives = platforms.map(platform => addObjectives(mapLines, platform));
 
-    var taggedPlatforms = tagStart(mapLines, platformsObjectives);
+    var taggedStartPlatforms = tagStart(mapLines, platformsObjectives);
+    var taggedPlatforms = tagEnd(mapLines, taggedStartPlatforms);
 
     return taggedPlatforms;
 }
@@ -260,11 +261,11 @@ function createEmptyPlatform(x,y) {
         xStart: x,
         xEnd: x,
         y: y,
-        length: function () { return this.xEnd - this.xStart + 1; },
         reachedFrom: [],
         reachTo: [],
         objectives: [],
-        isStart: false
+        isStart: false,
+        isEnd: false
     };
 }
 
@@ -311,6 +312,20 @@ function tagStart(mapLines, platforms) {
         
         if (isStart)
             platform.isStart = isStart
+        
+        return platform;
+    });
+}
+
+// Set isEnd to true for platform where end is
+function tagEnd(mapLines, platforms) {
+    return platforms.map(platform => {
+        var isEnd = mapLines[platform.y - 1]
+            .filter(char => char == BlockType.End)
+            .length != 0;
+        
+        if (isEnd)
+            platform.isEnd = isEnd
         
         return platform;
     });
