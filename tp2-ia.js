@@ -554,7 +554,160 @@ function solveGraphWorker(path, platformAccessPair, pointsToFind, maxRecursionLe
     }, []);
 }
 
+///////////////////////////////////////////////////////////////////////////////
+//  Step 4
+
+function makePath (position, solution) {
+    return makePathWorker([], position, solution);
 }
+
+function makePathWorker (accum, position, solution) {
+    if (solution.length == 0)
+        return accum;
+
+    var platform = solution[0].platform;
+    var access = solution[0].access;
+
+    // Path on access
+    var accessPath = makeAccessPath(position, platform, access);
+    accum = accum.concat(accessPath.path);
+    position = accessPath.newPosition;
+
+    // Path on platform
+    var platformPath = makePlatformPath(position, platform);
+    accum = accum.concat(platformPath.path);
+    position = platformPath.newPosition;
+
+    var tail = solution.slice(1, solution.length);
+    return makePathWorker(accum, position, tail);
+}
+
+function makeAccessPath (position, platform, access) {
+
+    if (access.yStart !== undefined) {
+        // access is Ladder
+        return makeLadderPath(position, platform, access);
+    } else if (access.xStart !== undefined) {
+        // access is Rope
+        return makeRopePath(position, platform, access);
+    }
+
+    // todo : Handle falls
+
+    return {
+        path: [],
+        newPosition: position
+    };
+}
+
+function makeLadderPath (position, platform, ladder) {
+    var hMoves = createHorizontalMoves(position.x, ladder.x); // Move to ladder, if not already on top
+    var vMoves = createVerticalMoves(position.y, platform.y - 1); // -1 because we go on top of destination
+
+    return {
+        path: hMoves.concat(vMoves),
+        newPosition: {
+            x: ladder.x,
+            y: platform.y
+        }
+    };
+}
+
+function makeRopePath (position, platform, rope) {
+    // todo : Find correct destinationX
+    var destinationX = platform.xStart;
+    return {
+        path: createHorizontalMoves(position.x, platform.xStart),
+        newPosition: {
+            x: destinationX,
+            y: platform.y
+        }
+    };
+}
+
+function makePlatformPath (position, platform) {
+    var objectives = platform.objectives;
+    var ends = objectives.filter(obj => obj.blockType == BlockType.End);
+    var points = objectives.filter(obj => obj.blockType == BlockType.Point);
+
+    var orderedByXPoints = points.map(p => p.x).sort((a,b) => a - b);
+
+    var leftmostPointX = position.x; // set default values
+    var rightmostPointX = position.x; // set default values
+
+    if (orderedByXPoints.length > 0) {
+        leftmostPointX = orderedByXPoints[0];
+        rightmostPointX = orderedByXPoints[orderedByXPoints.length - 1];
+    }
+
+    var result = [];
+    var lastX = position.x;
+
+    if (ends.length != 0) {
+        var end = ends[0];
+        
+        if (end.x > position.x) {
+            // End is on the right, so get points on the left first
+            result = result.concat(createHorizontalMoves(position.x, leftmostPointX));
+            result = result.concat(createHorizontalMoves(leftmostPointX, rightmostPointX));
+        } else {
+            // End is on the left, so get points on the right first
+            result = result.concat(createHorizontalMoves(position.x, rightmostPointX));
+            result = result.concat(createHorizontalMoves(rightmostPointX, leftmostPointX));
+        }
+        // Move to end
+        result = result.concat(createHorizontalMoves(rightmostPointX, end.x));
+        lastX = end.x;
+    } else {
+        // todo :: Check next moves to decide which side first
+
+        result = result.concat(createHorizontalMoves(position.x, leftmostPointX));
+        result = result.concat(createHorizontalMoves(leftmostPointX, rightmostPointX));
+        lastX = rightmostPointX;
+    }
+
+    return {
+        path: result,
+        newPosition: {
+            x: lastX,
+            y: position.y
+        }
+    };
+}
+
+function createVerticalMoves (source, destination) {
+    var distance = destination - source;
+    var move = distance > 0 ? Moves.Down : Moves.Up;
+    return repeatMove(move, Math.abs(distance));
+}
+
+function createHorizontalMoves (source, destination) {
+    var distance = destination - source;
+    var move = distance > 0 ? Moves.Right : Moves.Left;
+    return repeatMove(move, Math.abs(distance));
+}
+
+function repeatMove (move, n) {
+    return Array(n).fill(move);
+}
+
+function findStartingPosition (mapLines) {
+    return mapLines.reduce((pos, line, yPos) => {
+
+        // Case where position is already found
+        if (pos != -1) return pos;
+        
+        var xPos = line.indexOf(BlockType.Player);
+        return xPos == -1 
+            ? xPos 
+            : {
+            x: xPos,
+            y: yPos
+        };
+    }, -1);
+}
+
+
 /**
  * La fonction `next` est appelée automatiquement à
  * chaque tour et doit retourner un enregistrement
