@@ -75,7 +75,6 @@ function isObjective (block) {
                 xStart: Int,
                 xEnd: Int,
                 y: Int,
-                reachedFrom: [PlatformAccess], // todo: Check if necessary
                 reachTo: [PlatformAccess],
                 objectives: [Objective],
                 isStart: Bool,
@@ -89,7 +88,7 @@ function isObjective (block) {
             }
 
         By this definition, we can define a graph between platforms and their connections.
-        Obviously, at step 1, reachedFrom = reachTo = []
+        Obviously, at step 1, reachTo = []
 
         To support level 4 where a point ("$") is not directly above a platform, 
         a point creates a platform if it's not right above one. In case the end is
@@ -153,11 +152,7 @@ function start(map) {
 
     makePlatformGraph(mapLines, platforms);
 
-    console.log("\n\n\n\n################################\n");
-    console.log(platforms[0].reachedFrom.length);
-    console.log(platforms[0].reachedFrom.length == platforms[0].reachTo.length);
-    console.log("\n\n\n\n################################\n");
-    console.log(platforms[0].reachedFrom[0].platform.reachedFrom);
+    console.log("\n\n################################\n");
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -261,7 +256,6 @@ function createEmptyPlatform(x,y) {
         xStart: x,
         xEnd: x,
         y: y,
-        reachedFrom: [],
         reachTo: [],
         objectives: [],
         isStart: false,
@@ -347,10 +341,8 @@ function makePlatformGraph(mapLines, platforms) {
 
     // TODO :: Do same thing for falls
 
-    // Remove duplicate vertices and self references in platform.reachedFrom and reachTo
+    // Remove duplicate vertices and self references in platform.reachTo
     platforms.forEach((platform, index, platforms) => {
-        platform.reachedFrom = removeDuplicate(platform.reachedFrom)
-            .filter(x => x.platform != platform);
         platform.reachTo = removeDuplicate(platform.reachTo)
             .filter(x => x.platform != platform);
     });
@@ -440,7 +432,6 @@ function linkPlatforms(access, platforms) {
     });
 
     return platforms.map(platform => {
-        platform.reachedFrom = platform.reachedFrom.concat(platformAccessPairs);
         platform.reachTo = platform.reachTo.concat(platformAccessPairs);
         return platform
     });
