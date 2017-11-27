@@ -301,6 +301,7 @@ function addObjectives(mapLines, platform) {
 function tagStart(mapLines, platforms) {
     return platforms.map(platform => {
         var isStart = mapLines[platform.y - 1]
+            .slice(platform.xStart, platform.xEnd + 1)
             .filter(char => char == BlockType.Player)
             .length != 0;
         
@@ -315,6 +316,7 @@ function tagStart(mapLines, platforms) {
 function tagEnd(mapLines, platforms) {
     return platforms.map(platform => {
         var isEnd = mapLines[platform.y - 1]
+            .slice(platform.xStart, platform.xEnd + 1)
             .filter(char => char == BlockType.End)
             .length != 0;
         
