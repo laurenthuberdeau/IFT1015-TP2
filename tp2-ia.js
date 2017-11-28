@@ -88,7 +88,8 @@ function isObjective (block) {
                 reachTo: [PlatformAccess],
                 objectives: [Objective],
                 isStart: Bool,
-                isEnd: Bool
+                isEnd: Bool,
+                isSolid: Bool // Indicates if platform is real or a floating objective
             }
 
             Objective = {
@@ -260,15 +261,14 @@ function getPlatformsOnLine(line, lineOver, lineUnder, y) {
             
             // Else, we create a new one
             var newPlatform = createEmptyPlatform(index, y);
-            platforms.push(newPlatform);
-            return platforms;
+            return platforms.concat(newPlatform);
         }
 
         // We add a platform in the case of a floating objective
         if (isObjective(char) && !isSolid(lineUnder[index])) {
             var newPlatform = createEmptyPlatform(index, y + 1);
-            platforms.push(newPlatform);
-            return platforms;
+            newPlatform.isSolid = true;
+            return platforms.concat(newPlatform);
         }
 
         return platforms;
@@ -284,7 +284,8 @@ function createEmptyPlatform(x,y) {
         reachTo: [],
         objectives: [],
         isStart: false,
-        isEnd: false
+        isEnd: false,
+        isSolid: false
     };
 }
 
@@ -458,6 +459,16 @@ function findFalls(mapLines, platforms) {
     var width = mapLines[0].length;
 
     return flattenArray(platforms.map(platform => {
+
+        // platform isn't solid (Floating objective)
+        if (platform.isSolid) {
+            return [{
+                platform: platform,
+                x: platform.xStart,
+                y: platform.y,
+                digged: false
+            }];
+        }
         
         var result = [];
 
@@ -560,7 +571,7 @@ function solveGraph(platformsGraph) {
                     accum.concat(platform.objectives.filter(obj => obj.blockType == BlockType.Point))
                 , []);
 
-    return solveGraphWorker([], origin, pointsToFind, 5);
+    return solveGraphWorker([], origin, pointsToFind, 15);
 }
 
 // Returns -1 if can't find path
@@ -863,6 +874,9 @@ var level3String = "    H  $    ---------- $    S    \n    H#######         ####
 var level4String = "  $ $$  ------    H       \n#########     ####H       \n                 #H       \n  S              #H   &   \n##########################";
 var level5String = "H#######  H               \nH         H#$             \nH         H#              \nH         H#------        \nH      H &H#      $       \nH      H####     #########\nH      H#                 \nH      H#   $           S \n##########################";
 var level6String = "                     H######\n  S   H#########H    H#    #\n  ####H         H    H# $ $#\n      H         H    H######\n      H   ------H----H     #\nH#########H     H    H     #\nH         H     H    H     #\nH         H#####H    H     #\n##H###H         H###########\n  H   H         H      #####\n  H   H------   H      # $ #\n####  H     #######H########\n      H            H        \n      H        &   H        \n############################\n";
+
+// start(level5String);
+// exit();
 
 // start("    S    $ ----------       H    \n   #########         #######H    \n                            H    \n       $  $    &            H    \n#################################");
 // exit();
