@@ -265,7 +265,7 @@ function getPlatformsOnLine(line, lineOver, lineUnder, y) {
             return platforms;
         }
 
-        // We add a platform in the case of an floating objective
+        // We add a platform in the case of a floating objective
         if (isObjective(char) && !isSolid(lineUnder[index])) {
             var newPlatform = createEmptyPlatform(index, y + 1);
             platforms.push(newPlatform);
@@ -367,16 +367,18 @@ function makePlatformGraph(mapLines, platforms) {
         linkPlatforms(rope, getPlatformsReachableFromRope(rope, platforms));
     });
     
-    /*vertices.falls.forEach(fall => {
-        linkPlatforms(fall, getPlatformsReachableFromRope(rope, platforms));
-    });*/
+    vertices.falls.forEach(fall => {
+        var platformUnder = findPlatformUnderPosition(platforms, fall.x, fall.y);
+        if (platformUnder != -1)
+            linkPlatformsOneWay(fall, fall.platform, platformUnder);
+    });
 
     // TODO :: Do same thing for falls
 
     // Remove duplicate vertices and self references in platform.reachTo
     platforms.forEach((platform, index, platforms) => {
         platform.reachTo = removeDuplicate(platform.reachTo)
-            .filter(x => x.platform != platform);
+            .filter(x => x.platform != platform); // Remove references to itself
     });
 
     return platforms;
@@ -463,6 +465,7 @@ function findFalls(mapLines, platforms) {
         // Fall on the left
         if (platform.xStart > 0) {
             result.push({
+                platform: platform,
                 x: platform.xStart - 1,
                 y: platform.y,
                 digged: false
@@ -472,6 +475,7 @@ function findFalls(mapLines, platforms) {
         // Fall on the right
         if (platform.xEnd < width - 1) {
             result.push({
+                platform: platform,
                 x: platform.xEnd + 1,
                 y: platform.y,
                 digged: false
@@ -503,6 +507,16 @@ function linkPlatforms(access, platforms) {
         platform.reachTo = platform.reachTo.concat(platformAccessPairs);
         return platform
     });
+}
+
+function linkPlatformsOneWay(access, platformFrom, platformTo) {
+    var platformAccessPair =  {
+        platform: platformTo,
+        access: access
+    };
+
+    platformFrom.reachTo = platformFrom.reachTo.concat(platformAccessPair);
+    return platformFrom;
 }
 
 function getPlatformsReachableFromLadder(ladder, platforms) {
@@ -552,12 +566,13 @@ function solveGraph(platformsGraph) {
 
 // Returns -1 if can't find path
 function solveGraphWorker(path, platformAccessPair, pointsToFind, maxRecursionLevel) {
-    if (maxRecursionLevel == 0) 
+    // todo: Find something better to prevent infinite recursion. Stack vs recursion
+    if (maxRecursionLevel == 0)
         return -1;
     
     var platform = platformAccessPair.platform;
 
-    // Remove points that are "found"
+    // Remove points that are found
     pointsToFind = pointsToFind.filter(point => platform.objectives.indexOf(point) == -1);
 
     var pathComplete = platform.isEnd && pointsToFind.length == 0;
@@ -566,6 +581,7 @@ function solveGraphWorker(path, platformAccessPair, pointsToFind, maxRecursionLe
 
     if (pathComplete)
         return path;
+    
     if (platform.reachTo.length == 0) // Path is a dead end
         return -1;
 
@@ -583,11 +599,11 @@ function solveGraphWorker(path, platformAccessPair, pointsToFind, maxRecursionLe
 ///////////////////////////////////////////////////////////////////////////////
 //  Step 4
 
-function makePath (position, solution) {
-    return makePathWorker([], position, solution);
+function makePath (position, solution, platforms) {
+    return makePathWorker([], position, solution, platforms);
 }
 
-function makePathWorker (accum, position, solution) {
+function makePathWorker (accum, position, solution, platforms) {
     if (solution.length == 0)
         return accum;
 
@@ -595,7 +611,7 @@ function makePathWorker (accum, position, solution) {
     var access = solution[0].access;
 
     // Path on access
-    var accessPath = makeAccessPath(position, platform, access);
+    var accessPath = makeAccessPath(position, platform, access, platforms);
     accum = accum.concat(accessPath.path);
     position = accessPath.newPosition;
 
@@ -605,10 +621,10 @@ function makePathWorker (accum, position, solution) {
     position = platformPath.newPosition;
 
     var tail = solution.slice(1, solution.length);
-    return makePathWorker(accum, position, tail);
+    return makePathWorker(accum, position, tail, platforms);
 }
 
-function makeAccessPath (position, platform, access) {
+function makeAccessPath (position, platform, access, platforms) {
 
     if (access.yStart !== undefined) {
         // access is Ladder
@@ -616,10 +632,12 @@ function makeAccessPath (position, platform, access) {
     } else if (access.xStart !== undefined) {
         // access is Rope
         return makeRopePath(position, platform, access);
+    } else if (access.digged !== undefined) {
+        // access is Fall
+        return makeFallPath(position, platform, access, platforms);
     }
 
-    // todo : Handle falls
-
+    // No movements
     return {
         path: [],
         newPosition: position
@@ -647,6 +665,27 @@ function makeRopePath (position, platform, rope) {
         newPosition: {
             x: destinationX,
             y: platform.y
+        }
+    };
+}
+
+function makeFallPath (position, platform, fall, platforms) {
+
+    var hMoves = createHorizontalMoves(position.x, fall.x); // Move to fall
+
+    var platformUnder = findPlatformUnderPosition(platforms, fall.x, fall.y);
+
+    var vMoves = platformUnder != -1 ?
+        createVerticalMoves(fall.y, platformUnder.y + 1) :
+        [];
+
+    // todo : Find correct destinationX
+    var destinationX = platform.xStart;
+    return {
+        path: hMoves.concat(vMoves),
+        newPosition: {
+            x: fall.x,
+            y: platformUnder.y + 1
         }
     };
 }
