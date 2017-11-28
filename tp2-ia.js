@@ -172,8 +172,7 @@ function start(map) {
     // console.log(graph);
     // exit();
     var graphSolution = solveGraph(graph);
-    console.log(graphSolution);
-    var path = makePath(startingPosition, graphSolution);
+    var path = makePath(startingPosition, graphSolution, platforms);
 
     pathToFollow = path;
 
@@ -588,7 +587,11 @@ function solveGraphWorker(path, platformAccessPair, pointsToFind, maxRecursionLe
     // Find the shortest path. Each platform/access counts as 1 move, so not very accurate
     return platform.reachTo.reduce((shortestPath, nextPoint) => {
         var newPath = solveGraphWorker(path, nextPoint, pointsToFind, maxRecursionLevel - 1);
-        if (newPath == -1) return shortestPath;
+
+        // newPath is invalid
+        if (newPath == -1 || newPath.length == 0) {
+            return shortestPath;
+        }
 
         // Select shortest, non-empty path
         return newPath.length < shortestPath.length || shortestPath.length == 0 
