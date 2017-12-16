@@ -64,14 +64,6 @@ var game = {
     lastCmd: undefined
 };
 
-var isGoldBag = function (position) {
-    return game.board[position.row][position.col] == gameEnum.symbol.goldBag;
-};
-
-var isExit = function (position) {
-    return game.board[position.row][position.col] == gameEnum.symbol.exit;
-};
-
 var isLadder = function (position) {
     return game.board[position.row][position.col] == gameEnum.symbol.ladder;
 };
@@ -84,120 +76,9 @@ var isBrick = function (position) {
     return game.board[position.row][position.col] == gameEnum.symbol.brick;
 };
 
-var hasAllGoldBagsCaptured = function (goldBags) {
-    return goldBags.length == game.goldBags.length;
-}
-
-var hasGoldBagBeenCaptured = function (position, goldBags, moves) {
-    console.log("hasGoldBagBeenCaptured() - start");
-    console.log("position=" + JSON.stringify(position));
-    console.log("goldBags=" + JSON.stringify(goldBags));
-    console.log("moves=" + JSON.stringify(moves));
-    var captured = false;
-    for (var i = 0; i < goldBags.length; i++) {
-        console.log("goldBags[i]=" + goldBags[i]);
-        console.log("moves[goldBags[i]]=" + JSON.stringify(moves[goldBags[i]]));
-        if (moves[goldBags[i]].position.row == position.row && moves[goldBags[i]].position.col == position.col) {
-            console.log("already captured!");
-            captured = true;
-            break;
-        }
-    }
-    console.log("captured=" + captured);
-    console.log("hasGoldBagBeenCaptured() - end");
-    return captured;
-}
-
-var captureGoldBag = function (goldBags, moves) {
-    return goldBags.concat(moves.length);
-}
-
-var getLastDirection = function (moves) {
-    return moves.length > 0 ? moves[moves.length - 1].direction : 0;
-}
-
 var addMove = function (moves, position, direction) {
     return moves.concat({position: position, direction: direction});
 }
-
-var isRightDirection = function (direction) {
-    return direction == game.direction.right;
-};
-
-var isLeftDirection = function (direction) {
-    return direction == game.direction.left;
-};
-
-var isUpDirection = function (direction) {
-    return direction == game.direction.up;
-};
-
-var isDownDirection = function (direction) {
-    return direction == game.direction.down;
-};
-
-var reverseDirection = function (direction) {
-    return isRightDirection(direction) ? game.direction.left : game.direction.right;
-};
-
-var isDuplicateMove = function (position, direction, moves, goldBags) {
-    var duplicate = false;
-    var length = moves.length;
-    var start = 0;
-    // if all gold bags have been captured then we only look at the moves that were done after the last bag was found else we look at all the moves 
-    if (hasAllGoldBagsCaptured(goldBags)) {
-        start = goldBags[goldBags.length - 1];
-    }
-    for (var i = start; i < length; i++) {
-        if (moves[i].position.row == position.row && moves[i].position.col == position.col && moves[i].direction == direction) {
-            duplicate = true;
-            break;
-        }
-    }
-    return duplicate;
-};
-
-// var isRightMoveValid = function (position) {
-//     if (position.col == game.nCols - 1) {    // we are on the rightmost column
-//         return false;
-//     }
-//     var rightCellPosition = getPositionOfRightCell(position);
-//     if (isLadder(rightCellPosition) || isRope(rightCellPosition)) {    // the right cell is a ladder or a rope
-//         return true;
-//     }
-//     if (isBrick(rightCellPosition)) {    // the right cell is a brick
-//         return false;
-//     }
-//     if (position.row == 0) {    // we are on the bottom row
-//         return false;
-//     }
-//     var bottomRightCellPosition = getPositionOfBottomCell(rightCellPosition);
-//     if (isBrick(bottomRightCellPosition) || isLadder(bottomRightCellPosition)) {    // the bottom cell is a brick or a ladder
-//         return true;
-//     }
-//     return false;
-// };
-
-// var isLeftMoveValid = function (position) {
-//     if (position.col == 0) {    // we are on the leftmost column
-//         return false;
-//     }
-//     var leftCellPosition = getPositionOfLeftCell(position);
-//     if (isLadder(leftCellPosition) || isRope(leftCellPosition)) {    // the left cell is a ladder or a rope
-//         return true;
-//     }
-//     if (isBrick(leftCellPosition)) {    // the right cell is a brick
-//         return false;
-//     }
-//     if (position.row == 0) {    // we are on the bottom row
-//         return false;
-//     }
-//     var bottomLeftCellPosition = getPositionOfBottomCell(leftCellPosition);
-//     if (isBrick(bottomLeftCellPosition) || isLadder(bottomLeftCellPosition)) {    // the bottom cell is a brick or a ladder
-//         return true;
-//     }
-//     return false;
-// };
 
 var isUpMoveValid = function (position) {
     if (position.row == game.nRows - 1) {    // we are on the top row
@@ -209,20 +90,6 @@ var isUpMoveValid = function (position) {
     }
     return false;
 };
-
-// var isDownMoveValid = function (position) {
-//     if (position.row == 0) {    // we are on the bottom row
-//         return false;
-//     }
-//     var bottomCellPosition = getPositionOfBottomCell(position);
-//     if (isLadder(bottomCellPosition)) {    // the bottom cell is a ladder
-//         return true;
-//     }
-//     if (isRope(position) && !isBrick(bottomCellPosition)) {    // we are on a rope and the bottom cell is not a brick
-//         return true;
-//     }
-//     return false;
-// };
 
 var isDownMoveValid = function (position) {
     if (position.row == 0) {    // we are on the bottom row
@@ -277,15 +144,6 @@ var isLeftMoveValid = function (position) {
     return false;
 };
 
-var isMoveValid = function (position, direction) {
-    if (isRightDirection(direction)) {
-        return isRightMoveValid(position);
-    }
-    else {
-        return isLeftMoveValid(position);
-    }
-};
-
 var getPosition = function (row, col) {
     return {row: row, col: col};
 };
@@ -306,145 +164,9 @@ var getPositionOfLeftCell = function (position) {
     return getPosition(position.row, position.col - 1);
 };
 
-var getPositionOfNextCell = function (position, direction) {
-    var nextPosition;
-    if (isRightDirection(direction)) {
-        nextPosition = getPositionOfRightCell(position);
-    }
-    else if (isLeftDirection(direction)) {
-        nextPosition = getPositionOfLeftCell(position);
-    }
-    else if (isUpDirection(direction)) {
-        nextPosition = getPositionOfTopCell(position);
-    }
-    else {
-        return getPositionOfBottomCell(position);
-    }
-    return nextPosition;
-};
-
 var getNextPosition = function (position, direction) {
     var next = [undefined, getPositionOfTopCell, getPositionOfLeftCell, getPositionOfBottomCell, getPositionOfRightCell]
     return next[direction](position);
-};
-
-var getNextPossibleDirection = function (position, directionUsed) {
-    var nextPossibleDirections = [];
-};
-
-var getSol = function (position, moves, goldBags) {
-
-    // display paramameters
-    console.log("===> getSol");
-    console.log("currentPosition=" + JSON.stringify(position));
-    console.log("moves=" + JSON.stringify(moves));
-    console.log("goldBags=" + JSON.stringify(goldBags));
-    // console.log("falling=" + falling);
-
-    // increment function counter
-    game.nSol++;
-    console.log("game.nSol=" + game.nSol);
-    // console.assert(game.nSol < 500, "game.nSol should be < 500");
-    
-    // if the exit is found and all gold bags have been captured then we found a solution
-    if (isExit(position) && hasAllGoldBagsCaptured(goldBags)) {
-            console.log("we found a solution");
-            return moves;
-    }
-
-    // get last move
-    var lastDirection = getLastDirection(moves);
-    
-    // if an uncaptured gold bag symbol is found then capture it and reset last direction to 0 (in order to look in all directions)
-    if (isGoldBag(position) && !hasGoldBagBeenCaptured(position, goldBags, moves)) {
-            goldBags = captureGoldBag(goldBags, moves);
-            lastDirection = 0;
-    }
-
-    // // are we falling
-    // var falling = false;
-    // if (!isRope(position) && isLadder(position)) {   // we may be falling because we are not on a rope and not on a ladder
-    //     if (position.row == 0) {    // we are on the bottom row so we are definitively falling through the bottom, this is not a solution
-    //         console.log("falling outside the board, not a solution");
-    //         return [];
-    //     }
-    //     var bottomCellPosition = getPositionOfBottomCell(position);
-    //     if (!isBrick(bottomCellPosition) && !isLadder(bottomCellPosition)) {    // we are not on top of a brick nor a ladder, so we are definitively falling
-    //         falling = true;
-    //     }
-    // }
-
-    // // falling
-    // if (falling) {
-    //     console.log("down move is valid (still falling)");
-    //     return getSol(getPositionOfBottomCell(position), addMove(moves, position, gameEnum.direction.down), goldBags);
-    // }
-
-    // to gather all the moves
-    var moved = false;
-    var solutions = [];
-    var solution;
-
-    // get moves if we go up
-    if (lastDirection != gameEnum.direction.down && isUpMoveValid(position) && !isDuplicateMove(position, gameEnum.direction.up, moves, goldBags)) {
-        console.log("up move is valid");
-        moved = true;
-        solution = getSol(getPositionOfTopCell(position), addMove(moves, position, gameEnum.direction.up), goldBags);
-        if (solution.length > 0) {
-            solutions.push(solution);
-        }
-    }
-
-    // get moves if we go dow
-    if (lastDirection != gameEnum.direction.up && isDownMoveValid(position) && !isDuplicateMove(position, gameEnum.direction.down, moves, goldBags)) {
-        console.log("down move is valid");
-        moved = true;
-        solution = getSol(getPositionOfBottomCell(position), addMove(moves, position, gameEnum.direction.down), goldBags);
-        if (solution.length > 0) {
-            solutions.push(solution);
-        }
-    }
-
-    // get moves if we go right
-    if (lastDirection != gameEnum.direction.left && isRightMoveValid(position) && !isDuplicateMove(position, gameEnum.direction.right, moves, goldBags)) {
-        console.log("right move is valid");
-        moved = true;
-        solution = getSol(getPositionOfRightCell(position), addMove(moves, position, gameEnum.direction.right), goldBags);
-        if (solution.length > 0) {
-            solutions.push(solution);
-        }
-    }
-
-    // get moves if we go left
-    if (lastDirection != gameEnum.direction.right && isLeftMoveValid(position) && !isDuplicateMove(position, gameEnum.direction.left, moves, goldBags)) {
-        console.log("left move is valid");
-        moved = true;
-        solution = getSol(getPositionOfLeftCell(position), addMove(moves, position, gameEnum.direction.left), goldBags);
-        if (solution.length > 0) {
-            solutions.push(solution);
-        }
-    }
-
-    // couldn't move, dead end, not a solution
-    if (!moved) {
-        console.log("dead end, not a solution");
-        return [];
-    }
-
-    // get best moves
-    var bestSolution = [];
-    if (solutions.length > 0) {
-        bestSolution = solutions[0];
-        for (var i = 1; i < solutions.length; i++) {
-            if (solutions[i].length < bestSolution.length) {
-                bestSolution = solutions[i];
-            }
-        }
-    }
-
-    // return best moves
-    return bestSolution;
-
 };
 
 var isDirectionValid = function (row, col, direction) {
@@ -463,14 +185,11 @@ var getDirections = function (row, col) {
 };
 
 var buildGraph = function () {
-    console.log("buildGraph - begin");
     var graph = game.board.map(function (columns, row) {
         return columns.map(function (cell, col) {
             return getDirections(row, col);
         });
     });
-    console.log("graph=" + JSON.stringify(graph));
-    console.log("buildGraph - end");
     return graph;
 };
 
@@ -491,11 +210,7 @@ var getOtherGoldBags = function (goldBags) {
     return otherGoldBags;
 }
 
-var getPath2 = function (graph, position, end, without, moves) {
-    console.log("getPath2")
-    console.log("position=" + JSON.stringify(position));
-    console.log("moves=" + JSON.stringify(moves));
-    
+var getPath2 = function (graph, position, end, without, moves) {    
     // exit with the solution if we reached the destination
     if (position.row == end.row && position.col == end.col) {
         console.log("solution: yes");
@@ -505,7 +220,6 @@ var getPath2 = function (graph, position, end, without, moves) {
     // exit with "not a solution" if we reached an unallowed cell
     for (var i = 0; i < without.length; i++) {
         if (position.row == without[i].row && position.col == without[i].col) {
-            console.log("solution: no (unallowed)");
             return [];
         }
     }
@@ -743,44 +457,6 @@ function start(b) {
     game.movesIndex = 0;
     console.log("game.moves:" + JSON.stringify(game.moves));
     console.assert(game.moves.length > 0, "did not find a solution for level " + game.nStart);
-    // get sol
-    // game.nSol = 0;
-    // game.moves = getSol(game.current, [], []);
-    // game.movesIndex = 0;
-    // console.log("game.moves:" + JSON.stringify(game.moves));
-    // console.assert(game.moves.length > 0, "did not find a solution for level " + game.nStart);
-    
-    // return
-    return;
-
-    // build solution's move array which will be used by the next function
-
-    // // get solutions
-    // var moves = Array(0);
-    // var solutionRight = getSolution(game.current, game.direction.right, moves, game.goldBags.length, game.board);
-    // var solutionLeft = getSolution(game.current, game.direction.left, moves, game.goldBags.length, game.board);
-    // console.log("right solution:" + JSON.stringify(solutionRight));
-    // console.log("left  solution:" + JSON.stringify(solutionLeft));
-    
-    // // select best solution (i.e the less costly one in term of movements)
-    // var solution = solutionRight;
-    // if (solutionLeft.valid && (!solutionRight.valid || solutionLeft.cost < solutionRight.cost)) {
-    //     solution = solutionLeft;
-    // }
-    // console.log("best  solution:" + JSON.stringify(solution));
-    // console.assert(solution.valid, "did not find a solution");   // we should always be able to find a solution
-
-    // //solution:{"valid":true,"cost":36,"moves":[{"direction":2,"nMoves":12},{"direction":4,"nMoves":15},{"direction":4,"nMoves":1},{"direction":4,"nMoves":8}]}
-
-    // // build solution's move array which will be used by the next function
-    // game.moves = Array(solution.cost);
-    // var k = 0;
-    // for (var i = 0; i < solution.moves.length; i++) {
-    //     for (var j = 0; j < solution.moves[i].nMoves; j++)
-    //     game.moves[k++] = solution.moves[i].direction;
-    // }
-    // game.movesIndex = 0;
-    // console.log("game.moves:" + JSON.stringify(game.moves));
 }
 
 /**
@@ -832,16 +508,8 @@ function next(state) {
     var direction = game.moves[game.movesIndex].direction;
     console.log("direction=" + direction);
 
-    // var bottomCellPosition = getPositionOfBottomCell(game.current);
-    // if (isRope(game.current) && !isBrick(bottomCellPosition)) {    // we are on a rope and the bottom cell is not a brick
-    //     direction = "3";
-    //     console.log("we overwrite the direction to go down");
-    //     console.log("direction=" + direction);
-    // }
-
     // not the last move, so compute next expected position and increment array index for next move
     if (game.movesIndex < game.moves.length - 1) {
-        // var nextPosition = getPositionOfNextCell(game.current, direction);
         var nextPosition = game.moves[game.movesIndex + 1].position;
         game.current = nextPosition;
         game.movesIndex++;
