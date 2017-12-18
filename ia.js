@@ -11,6 +11,7 @@ if(room == "") {
 }
 
 var ip = "138.197.153.140";
+//var ip = "159.203.8.35";
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 
 function send(event, data) {
