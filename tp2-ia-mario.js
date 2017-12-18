@@ -254,10 +254,12 @@ function start(map) {
     solution.steps = [];
 
     // Guard for unsupported levels
-    if (gameInfo.level > 6) {
-        console.log("Your trial as expired." +
-            "The free AI only supports the first 6 levels. " +
-            "Please buy the full version to enjoy all 8 levels.");
+    if (gameInfo.level > 0) {
+        console.log("#".repeat(80));
+        console.log("#" + " ".repeat(28) + "Your trial as expired." + " ".repeat(28) + "#");
+        console.log("#" + " ".repeat(17) + "The free AI only supports the first 6 levels." + " ".repeat(16) + "#");
+        console.log("#" + " ".repeat(14) + "Please buy the full version to enjoy all 8 levels." + " ".repeat(14) + "#");
+        console.log("#".repeat(80));
         process.exit();
     }
 
