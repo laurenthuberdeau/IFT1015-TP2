@@ -1,7 +1,7 @@
 // TODO : modifier cette valeur avec la clé secrète
 var room = "laurent";
 
-var gameEnum = {
+var GameEnum = {
     function: {
         start: "start",
         next: "next"
@@ -31,7 +31,7 @@ var gameEnum = {
 };
 
 var game = {
-    nextExpectedFunction: gameEnum.function.start,
+    nextExpectedFunction: GameEnum.function.start,
     nStart: 0,
     nNext: undefined,
     nRows: undefined,
@@ -47,34 +47,21 @@ var game = {
         col: undefined
     },
     goldBags: undefined,
-    symbol: {
-        player: "&",
-        goldBag: "$",
-        exit: "S",
-        empty: " "
-    },
-    direction: {
-        up: 1,
-        left: 2,
-        down: 3,
-        right: 4
-    },
-    directions: [1, 2, 3, 4],
     moves: undefined,
     movesIndex: undefined,
     lastCmd: undefined
 };
 
 var isLadder = function (board, position) {
-    return board[position.row][position.col] == gameEnum.symbol.ladder;
+    return board[position.row][position.col] == GameEnum.symbol.ladder;
 };
 
 var isRope = function (board, position) {
-    return board[position.row][position.col] == gameEnum.symbol.rope;
+    return board[position.row][position.col] == GameEnum.symbol.rope;
 };
 
 var isBrick = function (board, position) {
-    return board[position.row][position.col] == gameEnum.symbol.brick;
+    return board[position.row][position.col] == GameEnum.symbol.brick;
 };
 
 var addMove = function (moves, position, direction) {
@@ -190,7 +177,7 @@ var isDirectionValid = function (board, position, direction) {
 
 var getDirections = function (board, position) {
     var directions = [];
-    gameEnum.directions.forEach(function (direction) {
+    GameEnum.directions.forEach(function (direction) {
         if (isDirectionValid(board, position, direction)) {
             directions.push(direction);
         }
@@ -208,7 +195,7 @@ var buildGraph = function (board) {
     return graph;
 };
 
-var getOtherGoldBags = function (board, goldBags) {
+var getOtherGoldBags = function (goldBags) {
     var otherGoldBags = [];
     for (var i = 0; i < game.goldBags.length; i++) {
         var found = false;
@@ -412,7 +399,7 @@ function start(b) {
     console.log("b=" + b);
 
     // assert expected function
-    console.assert(game.nextExpectedFunction == gameEnum.function.start, "Unexpected function called, we were expecting " + game.nextExpectedFunction);
+    console.assert(game.nextExpectedFunction == GameEnum.function.start, "Unexpected function called, we were expecting " + game.nextExpectedFunction);
 
     // assert unsupported levels
     // console.assert(game.nStart < 4, "game.nStart should < 4 as only the first 4 levels are supported");
@@ -424,7 +411,7 @@ function start(b) {
     console.log("game.nStart=" + game.nStart);
     
     // set next expected funciton to next
-    game.nextExpectedFunction = gameEnum.function.next;
+    game.nextExpectedFunction = GameEnum.function.next;
     
     // transform the board from a string to an array of array (rows x columns) where row 0 is at the bottom and column 0 is at the left
     game.board = b.replace(/\n$/, "").split("\n").reverse().map(function (line) {
@@ -449,22 +436,22 @@ function start(b) {
     game.goldBags = [];
     game.board.forEach(function (row, rowIndex) {
         row.forEach(function (cell, colIndex) {
-            if (game.board[rowIndex][colIndex] == game.symbol.player) {
+            if (game.board[rowIndex][colIndex] == GameEnum.symbol.player) {
                 game.current.row = rowIndex;
                 game.current.col = colIndex;
             }
-            else if (game.board[rowIndex][colIndex] == game.symbol.exit) {
+            else if (game.board[rowIndex][colIndex] == GameEnum.symbol.exit) {
                 game.exit.row = rowIndex;
                 game.exit.col = colIndex;
             }
-            else if (game.board[rowIndex][colIndex] == game.symbol.goldBag) {
+            else if (game.board[rowIndex][colIndex] == GameEnum.symbol.goldBag) {
                 game.goldBags.push({row: rowIndex, col: colIndex});
             }
         });
     });
 
     // remove player from board
-    game.board[game.current.row][game.current.col] = game.symbol.empty;
+    game.board[game.current.row][game.current.col] = GameEnum.symbol.empty;
 
 // build graph of all possible moves
     var graph = buildGraph(game.board);
@@ -497,7 +484,7 @@ function next(state) {
     console.log("state=" + JSON.stringify(state));
     
     // assert expected function
-    console.assert(game.nextExpectedFunction == gameEnum.function.next, "Unexpected function called, we were expecting " + game.nextExpectedFunction);
+    console.assert(game.nextExpectedFunction == GameEnum.function.next, "Unexpected function called, we were expecting " + game.nextExpectedFunction);
 
     // increment function counter
     game.nNext++;
@@ -533,7 +520,7 @@ function next(state) {
     }
     else {  // this is the last move, set next expected function to start
         console.log("this is the last move of the level");
-        game.nextExpectedFunction = gameEnum.function.start;
+        game.nextExpectedFunction = GameEnum.function.start;
     }
 
     // return the move command
