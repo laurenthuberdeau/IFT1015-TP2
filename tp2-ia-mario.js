@@ -13,6 +13,7 @@ var GameEnum = {
         right: 4
     },
     directions: [1, 2, 3, 4],
+    directionsInverse: [3, 4, 1, 2],
     direction: {
         up: 1,
         left: 2,
@@ -152,7 +153,6 @@ var getDirections = function (board, position) {
 };
 
 var buildGraph = function (board) {
-    console.log(board);
     var graph = board.map(function (columns, row) {
         return columns.map(function (cell, col) {
             return getDirections(board, getPosition(row, col));
@@ -161,170 +161,82 @@ var buildGraph = function (board) {
     return graph;
 };
 
-var getOtherGoldBags = function (goldBags) {
-    var otherGoldBags = [];
-    for (var i = 0; i < game.goldBags.length; i++) {
-        var found = false;
-        for (var j = 0; j < goldBags.length; j++) {
-            if (game.goldBags[i].row == goldBags[j].row && game.goldBags[i].col == goldBags[j].col) {
-                found = true;
-                break;
-            }
-        }
-        if (!found) {
-            otherGoldBags.push(game.goldBags[i]);
-        }
-    }
-    return otherGoldBags;
-}
-
-var getPath2 = function (graph, position, end, without, moves) {    
-    // exit with the solution if we reached the destination
-    if (position.row == end.row && position.col == end.col) {
-        console.log("solution: yes");
+var getPath = function (graph, position, end, forbiddenCells, moves) {
+    // Exit reached!
+    if (position.row == end.row && position.col == end.col)
         return moves;
-    }
 
-    // exit with "not a solution" if we reached an unallowed cell
-    for (var i = 0; i < without.length; i++) {
-        if (position.row == without[i].row && position.col == without[i].col) {
-            return [];
-        }
-    }
-
-    // get last direction
-    var lastDirection = moves[moves.length - 1].direction;
-    console.log("lastDirection=" + lastDirection);
-    
-    // compute the opposite of the last direction
-    var lastDirectionOpposite = [undefined, 3, 4, 1, 2][lastDirection];
-    console.log("lastDirectionOpposite=" + lastDirectionOpposite);
-    
-    // get possible directions
-    var directions = graph[position.row][position.col].slice();
-    console.log("directions=" + JSON.stringify(directions));
-    
-    // remove the opposite direction if present
-    var index = directions.indexOf(lastDirectionOpposite);
-    console.log("index=" + index);
-    if (index != -1) {
-        directions.splice(index, 1);
-        console.log("directions=" + JSON.stringify(directions));
-    }
-
-    // exit with "not a solution" if we reached a dead end
-    if (directions.length == 0) {
-        console.log("solution: no (dead end)");
+    // We're on a forbidden cell
+    if (forbiddenCells
+            .filter(cell => cell.row == position.row && cell.col == position.col)
+            .length != 0)
         return [];
-    }
-
+    
+    // Possible choice of directions at current position
+    // We filter moves that brings us to an already visited position
+    var directions = graph[position.row][position.col]
+        .filter(direction => {
+            var newPosition = getNextPosition(position, direction);
+            return moves
+                .map(move => move.position)
+                .find(move => move.row == newPosition.row && move.col == newPosition.col) === undefined;
+        });
+    
     // look in all directions to find a path
-    var solutions = [];
-    var solution;
-    for (var i = 0; i < directions.length; i++) {
+    var solutions = directions
+        .map(function(direction) {
+            return getPath(
+                graph,
+                getNextPosition(position, direction), 
+                end, 
+                forbiddenCells, 
+                addMove(moves, position, direction)
+            );
+        }).filter(function(solution) {
+            // Remove empty solutions
+            return solution.length != 0;
+        });
 
-        // skip the direction if we already did this move
-        var skipDirection = false;
-        for (var j = 0; j < moves.length; j++) {
-            if (moves[j].position.row == position.row && moves[j].position.col == position.col && moves[j].direction == directions[i]) {
-                skipDirection = true;
-                break;
-            }
-        }
-        if (skipDirection) {
-            break;
-        }
-
-        // find best solution in that direction
-        var solution = getPath2(graph, getNextPosition(position, directions[i]), end, without, addMove(moves, position, directions[i]));
-        if (solution.length > 0) {
-            solutions.push(solution);
-        }
-    }
+    // No solutions
+    if (solutions.length == 0)
+        return [];
 
     // get best solution
-    var bestSolution = [];
-    if (solutions.length > 0) {
-        bestSolution = solutions[0];
-        for (var i = 1; i < solutions.length; i++) {
-            if (solutions[i].length < bestSolution.length) {
-                bestSolution = solutions[i];
-            }
-        }
-    }
+    var bestSolution = solutions.sort(function(sol1, sol2) {
+        return sol1.length - sol2.length;
+    })[0];
 
-    // return the best solution (which may be an empty solution meaning that a path have not been found)
-    return bestSolution;
-}
-
-var getPath = function (graph, begin, end, without) {
-    console.log("getPath")
-    console.log("begin=" + JSON.stringify(begin));
-    console.log("end=" + JSON.stringify(end));
-    console.log("without=" + JSON.stringify(without));
-    
-    // get possible directions
-    var directions = graph[begin.row][begin.col];
-    
-    // exit with "not a solution" if we reached a dead end
-    if (directions.length == 0) {
-        console.log("solution: no (dead end)");
-        return [];
-    }    
-
-    // look in all directions to find a path
-    var solutions = [];
-    var solution;
-    for (var i = 0; i < directions.length; i++) {
-        // find best solution in that direction
-        solution = getPath2(graph, getNextPosition(begin, directions[i]), end, without, addMove([], begin, directions[i]));
-        if (solution.length > 0) {
-            solutions.push(solution);
-        }
-    }
-
-    // get best solution
-    var bestSolution = [];
-    if (solutions.length > 0) {
-        bestSolution = solutions[0];
-        for (var i = 1; i < solutions.length; i++) {
-            if (solutions[i].length < bestSolution.length) {
-                bestSolution = solutions[i];
-            }
-        }
-    }
-
-    // return the best solution (which may be an empty solution meaning that a path have not been found)
+    // return the best solution
     return bestSolution;
 };
 
-var solveGraph = function (graph) {
+var solveGraph = function (graph, goldBags) {
     console.log("solveGraph");
     var bestSolution = [];
-    for (var i = 0; i < game.goldBags.length; i++) {
-        var solution1 = getPath(graph, game.current, game.goldBags[i], getOtherGoldBags([game.goldBags[i]]));
-        console.log("the best solution between " + JSON.stringify(game.current) + " and " + JSON.stringify(game.goldBags[i]) + " and without going through " + JSON.stringify(getOtherGoldBags([game.goldBags[i]])) + " is " + JSON.stringify(solution1));
-        console.log(solution1.map(function(move) {return move.direction}).join(""));
+    for (var i = 0; i < goldBags.length; i++) {
+        //### For each goldbags, find shortest path
+
+        var solution1 = getPath(graph, game.current, goldBags[i], getGoldBagsRemaining(goldBags, [goldBags[i]]), []);
+
         if (solution1.length > 0) {
-            for (var j = 0; j < game.goldBags.length; j++) {
+
+            for (var j = 0; j < goldBags.length; j++) {
+
                 if (j != i) {
-                    var solution2 = getPath(graph, game.goldBags[i], game.goldBags[j], getOtherGoldBags([game.goldBags[i], game.goldBags[j]]));
-                    console.log("the best solution between " + JSON.stringify(game.goldBags[i]) + " and " + JSON.stringify(game.goldBags[j]) + " and without going through " + JSON.stringify(getOtherGoldBags([game.goldBags[i], game.goldBags[j]])) + " is " + JSON.stringify(solution2));
-                    console.log(solution2.map(function(move) {return move.direction}).join(""));
+
+                    var solution2 = getPath(graph, goldBags[i], goldBags[j], getGoldBagsRemaining(goldBags, [goldBags[i], goldBags[j]]), []);
+                    
                     if (solution2.length > 0) {
-                        for (var k = 0; k < game.goldBags.length; k++) {
+                        for (var k = 0; k < goldBags.length; k++) {
                             if (k != i && k != j) {
-                                var solution3 = getPath(graph, game.goldBags[j], game.goldBags[k], []);
-                                console.log("the best solution between " + JSON.stringify(game.goldBags[j]) + " and " + JSON.stringify(game.goldBags[k]) + " is " + JSON.stringify(solution3));
-                                console.log(solution3.map(function(move) {return move.direction}).join(""));
+                                var solution3 = getPath(graph, goldBags[j], goldBags[k], [], []);
+                                
                                 if (solution3.length > 0) {
-                                    var solution4 = getPath(graph, game.goldBags[k], game.exit, []);
-                                    console.log("the best solution between " + JSON.stringify(game.goldBags[k]) + " and " + JSON.stringify(game.exit) + " is " + JSON.stringify(solution4));
-                                    console.log(solution4.map(function(move) {return move.direction}).join(""));
+                                    var solution4 = getPath(graph, goldBags[k], game.exit, [], []);
+                                    
                                     if (solution4.length > 0) {
                                         var solution = solution1.concat(solution2).concat(solution3).concat(solution4);
-                                        console.log("this is a complete solution between " + JSON.stringify(game.current) + " and " + JSON.stringify(game.exit) + " is " + JSON.stringify(solution));
-                                        console.log(solution.map(function(move) {return move.direction}).join(""));
+                                        
                                         if (bestSolution.length == 0 || solution.length < bestSolution.length) {
                                             bestSolution = solution;
                                         }
@@ -421,7 +333,7 @@ function start(b) {
 
 // build graph of all possible moves
     var graph = buildGraph(game.board);
-    game.moves = solveGraph(graph);
+    game.moves = solveGraph(graph, game.goldBags);
     game.movesIndex = 0;
     console.log("game.moves:" + JSON.stringify(game.moves));
     console.assert(game.moves.length > 0, "did not find a solution for level " + game.nStart);
