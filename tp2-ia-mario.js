@@ -12,6 +12,7 @@ var gameEnum = {
         down: 3,
         right: 4
     },
+    directions: [1, 2, 3, 4],
     direction: {
         up: 1,
         left: 2,
@@ -64,84 +65,97 @@ var game = {
     lastCmd: undefined
 };
 
-var isLadder = function (position) {
-    return game.board[position.row][position.col] == gameEnum.symbol.ladder;
+var isLadder = function (board, position) {
+    return board[position.row][position.col] == gameEnum.symbol.ladder;
 };
 
-var isRope = function (position) {
-    return game.board[position.row][position.col] == gameEnum.symbol.rope;
+var isRope = function (board, position) {
+    return board[position.row][position.col] == gameEnum.symbol.rope;
 };
 
-var isBrick = function (position) {
-    return game.board[position.row][position.col] == gameEnum.symbol.brick;
+var isBrick = function (board, position) {
+    return board[position.row][position.col] == gameEnum.symbol.brick;
 };
 
 var addMove = function (moves, position, direction) {
     return moves.concat({position: position, direction: direction});
 }
 
-var isUpMoveValid = function (position) {
-    if (position.row == game.nRows - 1) {    // we are on the top row
-        return false;
-    }
-    var topCellPosition = getPositionOfTopCell(position);
-    if (isLadder(position) && !isBrick(topCellPosition)) {    // we are on a ladder and anything but a brick on the top cell
-        return true;
-    }
-    return false;
+var isUpMoveValid = function (board, position) {
+    return position.row != board.length - 1 // Not on top row
+        && isLadder(board, position) // On ladder
+        && !isBrick(board, getPositionOfTopCell(position)); // No brick above
 };
 
-var isDownMoveValid = function (position) {
+var isDownMoveValid = function (board, position) {
     if (position.row == 0) {    // we are on the bottom row
         return false;
     }
     var bottomCellPosition = getPositionOfBottomCell(position);
-    if (isBrick(bottomCellPosition)) {    // the bottom cell is a brick
+    if (isBrick(board, bottomCellPosition)) {    // the bottom cell is a brick
         return false;
     }
     return true;
 };
 
-var isRightMoveValid = function (position) {
-    if (position.col == game.nCols - 1) {    // we are on the rightmost column
-        return false;
-    }
-    var rightCellPosition = getPositionOfRightCell(position);
-    if (isBrick(rightCellPosition)) {    // the right cell is a brick
-        return false;
-    }
-    if (isLadder(position) || isRope(position)) {    // the current cell is a ladder or a rope
-        return true;
-    }
-    if (position.row == 0) {    // we are on the bottom row, we are falling through the bottom of the board
-        return false;
-    }
-    var bottomCellPosition = getPositionOfBottomCell(position);
-    if (isBrick(bottomCellPosition) || isLadder(bottomCellPosition)) {    // we are on top of a brick or a ladder
-        return true;
-    }
-    return false;
+// todo: Refactor
+var isRightMoveValid = function (board, position) {
+
+    if (position.col == board[0].length - 1) {    // we are on the rightmost column 
+        return false; 
+    } 
+    var rightCellPosition = getPositionOfRightCell(position); 
+    if (isBrick(board, rightCellPosition)) {    // the right cell is a brick 
+        return false; 
+    } 
+    if (isLadder(board, position) || isRope(board, position)) {    // the current cell is a ladder or a rope 
+        return true; 
+    } 
+    if (position.row == 0) {    // we are on the bottom row, we are falling through the bottom of the board 
+        return false; 
+    } 
+    var bottomCellPosition = getPositionOfBottomCell(position); 
+    if (isBrick(board, bottomCellPosition) || isLadder(board, bottomCellPosition)) {    // we are on top of a brick or a ladder 
+        return true; 
+    } 
+    return false; 
+
+    var onRightColumn = position.col == board[0].length - 1;  
+    var brickOnRight = isBrick(board, getPositionOfRightCell(position));  
+    return !onRightColumn && !brickOnRight; 
+    
+    return position.col != board[0].length - 1 // Not 
+        && !isBrick(board, getPositionOfRightCell(position)); // No brick on right
 };
 
-var isLeftMoveValid = function (position) {
-    if (position.col == 0) {    // we are on the leftmost column
-        return false;
-    }
-    var leftCellPosition = getPositionOfLeftCell(position);
-    if (isBrick(leftCellPosition)) {    // the left cell is a brick
-        return false;
-    }
-    if (isLadder(position) || isRope(position)) {    // the current cell is a ladder or a rope
-        return true;
-    }
-    if (position.row == 0) {    // we are on the bottom row, we are falling through the bottom of the board
-        return false;
-    }
-    var bottomCellPosition = getPositionOfBottomCell(position);
-    if (isBrick(bottomCellPosition) || isLadder(bottomCellPosition)) {    // we are on top of a brick or a ladder
-        return true;
-    }
-    return false;
+// todo: Refactor
+var isLeftMoveValid = function (board, position) {  
+
+    if (position.col == 0) {    // we are on the leftmost column 
+        return false; 
+    } 
+    var leftCellPosition = getPositionOfLeftCell(position); 
+    if (isBrick(board, leftCellPosition)) {    // the left cell is a brick 
+        return false; 
+    } 
+    if (isLadder(board, position) || isRope(board, position)) {    // the current cell is a ladder or a rope 
+        return true; 
+    } 
+    if (position.row == 0) {    // we are on the bottom row, we are falling through the bottom of the board 
+        return false; 
+    } 
+    var bottomCellPosition = getPositionOfBottomCell(position); 
+    if (isBrick(board, bottomCellPosition) || isLadder(board, bottomCellPosition)) {    // we are on top of a brick or a ladder 
+        return true; 
+    } 
+    return false; 
+
+    var onLeftColumn = position.col == 0;  
+    var brickOnLeft = isBrick(board, getPositionOfRightCell(position));  
+    return !(onLeftColumn || brickOnLeft);  
+
+    return position.col != 0
+        && !isBrick(board, getPositionOfLeftCell(position));
 };
 
 var getPosition = function (row, col) {
@@ -165,35 +179,36 @@ var getPositionOfLeftCell = function (position) {
 };
 
 var getNextPosition = function (position, direction) {
-    var next = [undefined, getPositionOfTopCell, getPositionOfLeftCell, getPositionOfBottomCell, getPositionOfRightCell]
-    return next[direction](position);
+    var next = [getPositionOfTopCell, getPositionOfLeftCell, getPositionOfBottomCell, getPositionOfRightCell];
+    return next[direction - 1](position);
 };
 
-var isDirectionValid = function (row, col, direction) {
-    var isValid = [undefined, isUpMoveValid, isLeftMoveValid, isDownMoveValid, isRightMoveValid];
-    return isValid[direction]({row: row, col: col});
+var isDirectionValid = function (board, position, direction) {
+    var isValid = [isUpMoveValid, isLeftMoveValid, isDownMoveValid, isRightMoveValid];
+    return isValid[direction - 1](board, position);
 };
 
-var getDirections = function (row, col) {
+var getDirections = function (board, position) {
     var directions = [];
-    game.directions.forEach(function (direction) {
-        if (isDirectionValid(row, col, direction)) {
+    gameEnum.directions.forEach(function (direction) {
+        if (isDirectionValid(board, position, direction)) {
             directions.push(direction);
         }
     });
     return directions;
 };
 
-var buildGraph = function () {
-    var graph = game.board.map(function (columns, row) {
+var buildGraph = function (board) {
+    console.log(board);
+    var graph = board.map(function (columns, row) {
         return columns.map(function (cell, col) {
-            return getDirections(row, col);
+            return getDirections(board, getPosition(row, col));
         });
     });
     return graph;
 };
 
-var getOtherGoldBags = function (goldBags) {
+var getOtherGoldBags = function (board, goldBags) {
     var otherGoldBags = [];
     for (var i = 0; i < game.goldBags.length; i++) {
         var found = false;
@@ -452,7 +467,7 @@ function start(b) {
     game.board[game.current.row][game.current.col] = game.symbol.empty;
 
 // build graph of all possible moves
-    var graph = buildGraph();
+    var graph = buildGraph(game.board);
     game.moves = solveGraph(graph);
     game.movesIndex = 0;
     console.log("game.moves:" + JSON.stringify(game.moves));
