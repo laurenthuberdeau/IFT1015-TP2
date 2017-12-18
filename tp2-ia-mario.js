@@ -210,50 +210,45 @@ var getPath = function (graph, position, end, forbiddenCells, moves) {
     return bestSolution;
 };
 
-var solveGraph = function (graph, goldBags) {
-    console.log("solveGraph");
-    var bestSolution = [];
-    for (var i = 0; i < goldBags.length; i++) {
-        //### For each goldbags, find shortest path
+// Solve graph using dynamic programming
+function solveGraph(graph, currentPosition, goldBags, goldCollected) {
+    // No more gold bags to collect. Go to exit
+    if (goldBags.length == 0)
+        return getPath(graph, currentPosition, game.exit, goldBags, []);
 
-        var solution1 = getPath(graph, game.current, goldBags[i], getGoldBagsRemaining(goldBags, [goldBags[i]]), []);
+    var solutions = goldBags
+        .map(function(goldBag) {
+            var goldCollected2 = goldCollected.concat(goldBag);
+            var goldToCollect = getGoldBagsRemaining(goldBags, goldCollected2);
 
-        if (solution1.length > 0) {
+            var solution = getPath(graph, currentPosition, goldBag, goldToCollect, []);
+            if (solution.length == 0)
+                return [];
 
-            for (var j = 0; j < goldBags.length; j++) {
+            // 
+            var solutionAfter = solveGraph(graph, goldBag, goldToCollect, goldCollected2);
+            if (solutionAfter.length == 0)
+                return [];
 
-                if (j != i) {
+            return solution.concat(solutionAfter);
+        }).filter(function(solution) {
+            return solution.length != 0;
+        }).sort(function(sol1, sol2) {
+            return sol1.length - sol2.length;
+        });
 
-                    var solution2 = getPath(graph, goldBags[i], goldBags[j], getGoldBagsRemaining(goldBags, [goldBags[i], goldBags[j]]), []);
-                    
-                    if (solution2.length > 0) {
-                        for (var k = 0; k < goldBags.length; k++) {
-                            if (k != i && k != j) {
-                                var solution3 = getPath(graph, goldBags[j], goldBags[k], [], []);
-                                
-                                if (solution3.length > 0) {
-                                    var solution4 = getPath(graph, goldBags[k], game.exit, [], []);
-                                    
-                                    if (solution4.length > 0) {
-                                        var solution = solution1.concat(solution2).concat(solution3).concat(solution4);
-                                        
-                                        if (bestSolution.length == 0 || solution.length < bestSolution.length) {
-                                            bestSolution = solution;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-    console.log("the final solution between " + JSON.stringify(game.current) + " and " + JSON.stringify(game.exit) + " is " + JSON.stringify(bestSolution));
-    console.log(bestSolution.map(function(move) {return move.direction}).join(""));
-    console.log("solveGraph - end");
-    return bestSolution;
-};
+    // No solutions
+    if (solutions.length == 0)
+        return [];
+
+    return solutions[0]; // 0 is the shortest one
+}
+
+var getGoldBagsRemaining = function (goldBags, foundGoldBags) {
+    return goldBags.filter(function(goldBag) {
+        return foundGoldBags.indexOf(goldBag) == -1;
+    });
+}
 
 /**
  * La fonction start() est appelée au début
@@ -331,9 +326,9 @@ function start(b) {
     // remove player from board
     game.board[game.current.row][game.current.col] = GameEnum.symbol.empty;
 
-// build graph of all possible moves
+    // build graph of all possible moves
     var graph = buildGraph(game.board);
-    game.moves = solveGraph(graph, game.goldBags);
+    game.moves = solveGraph(graph, game.current, game.goldBags, []);
     game.movesIndex = 0;
     console.log("game.moves:" + JSON.stringify(game.moves));
     console.assert(game.moves.length > 0, "did not find a solution for level " + game.nStart);
