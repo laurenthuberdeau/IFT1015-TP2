@@ -75,74 +75,40 @@ var isUpMoveValid = function (board, position) {
 };
 
 var isDownMoveValid = function (board, position) {
-    if (position.row == 0) {    // we are on the bottom row
-        return false;
-    }
-    var bottomCellPosition = getPositionOfBottomCell(position);
-    if (isBrick(board, bottomCellPosition)) {    // the bottom cell is a brick
-        return false;
-    }
-    return true;
+    return position.row != 0 // Not on bottom row  
+        && !isBrick(board, getPositionOfBottomCell(position)); // No brick under position 
 };
 
-// todo: Refactor
 var isRightMoveValid = function (board, position) {
+    var onRightColumn = position.col == board[0].length - 1;
+    var brickOnRight = isBrick(board, getPositionOfRightCell(position));
 
-    if (position.col == board[0].length - 1) {    // we are on the rightmost column 
-        return false; 
-    } 
-    var rightCellPosition = getPositionOfRightCell(position); 
-    if (isBrick(board, rightCellPosition)) {    // the right cell is a brick 
-        return false; 
-    } 
-    if (isLadder(board, position) || isRope(board, position)) {    // the current cell is a ladder or a rope 
-        return true; 
-    } 
-    if (position.row == 0) {    // we are on the bottom row, we are falling through the bottom of the board 
-        return false; 
-    } 
-    var bottomCellPosition = getPositionOfBottomCell(position); 
-    if (isBrick(board, bottomCellPosition) || isLadder(board, bottomCellPosition)) {    // we are on top of a brick or a ladder 
-        return true; 
-    } 
-    return false; 
+    if (onRightColumn || brickOnRight)
+        return false;
 
-    var onRightColumn = position.col == board[0].length - 1;  
-    var brickOnRight = isBrick(board, getPositionOfRightCell(position));  
-    return !onRightColumn && !brickOnRight; 
-    
-    return position.col != board[0].length - 1 // Not 
-        && !isBrick(board, getPositionOfRightCell(position)); // No brick on right
+    var bottomCellPosition = getPositionOfBottomCell(position);
+    var canMoveRight = isLadder(board, position) // On ladder
+        || isRope(board, position) // On rope
+        || isBrick(board, bottomCellPosition) // Over brick
+        || isLadder(board, bottomCellPosition); // Over ladder
+
+    return canMoveRight;
 };
 
-// todo: Refactor
 var isLeftMoveValid = function (board, position) {  
+    var onLeftColumn = position.col == 0;
+    var brickOnLeft = isBrick(board, getPositionOfLeftCell(position));
 
-    if (position.col == 0) {    // we are on the leftmost column 
-        return false; 
-    } 
-    var leftCellPosition = getPositionOfLeftCell(position); 
-    if (isBrick(board, leftCellPosition)) {    // the left cell is a brick 
-        return false; 
-    } 
-    if (isLadder(board, position) || isRope(board, position)) {    // the current cell is a ladder or a rope 
-        return true; 
-    } 
-    if (position.row == 0) {    // we are on the bottom row, we are falling through the bottom of the board 
-        return false; 
-    } 
-    var bottomCellPosition = getPositionOfBottomCell(position); 
-    if (isBrick(board, bottomCellPosition) || isLadder(board, bottomCellPosition)) {    // we are on top of a brick or a ladder 
-        return true; 
-    } 
-    return false; 
+    if (onLeftColumn || brickOnLeft)
+        return false;
 
-    var onLeftColumn = position.col == 0;  
-    var brickOnLeft = isBrick(board, getPositionOfRightCell(position));  
-    return !(onLeftColumn || brickOnLeft);  
+    var bottomCellPosition = getPositionOfBottomCell(position);
+    var canMoveLeft = isLadder(board, position) // On ladder
+        || isRope(board, position) // On rope
+        || isBrick(board, bottomCellPosition) // Over brick
+        || isLadder(board, bottomCellPosition); // Over ladder
 
-    return position.col != 0
-        && !isBrick(board, getPositionOfLeftCell(position));
+    return canMoveLeft;
 };
 
 var getPosition = function (row, col) {
