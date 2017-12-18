@@ -3,7 +3,7 @@ var stream = require('stream')
 var tls = require('tls');
 var fs = require('fs');
 
-var {room, start, next} = require('./tp2-ia-mario.js');
+var {room, start, next} = require('./tp2-ia.js');
 
 if(room == "") {
     console.error('Veuillez entrer une clé secrète dans tp2-ia.js');
