@@ -1,13 +1,8 @@
 // TODO : modifier cette valeur avec la clé secrète
-var room = "laurent";
+let room = "laurent";
 
-var GameEnum = {
-    move: {
-        up: 1,
-        left: 2,
-        down: 3,
-        right: 4
-    },
+// Game constants
+const GameEnum = {
     directions: [1, 2, 3, 4],
     directionsInverse: [3, 4, 1, 2],
     direction: {
@@ -27,43 +22,79 @@ var GameEnum = {
     },
 };
 
-var gameInfo = { 
-    level: 0 
-};
- 
-var solution = { 
+// Used to know what level is being solved
+var levelNumber = 0;
+
+// Global variable storing solution
+var solution = {
     stepIndex: 0,
     steps: []
 };
- 
-var isLadder = function (board, position) {
-    return board[position.y][position.x] == GameEnum.symbol.ladder;
-};
 
-var isRope = function (board, position) {
-    return board[position.y][position.x] == GameEnum.symbol.rope;
-};
+///////////////////////////////////////////////////////////////////////////////
+//  Helper functions
 
-var isBrick = function (board, position) {
-    return board[position.y][position.x] == GameEnum.symbol.brick;
-};
-
-var addMove = function (moves, position, direction) {
-    return moves.concat({position: position, direction: direction});
+// Creates position record from x and y
+function getPosition(x, y) {
+    return {x: x, y: y};
 }
 
-var isUpMoveValid = function (board, position) {
+// If board.at(position) is a ladder
+function isLadder(board, position) {
+    return board[position.y][position.x] == GameEnum.symbol.ladder;
+}
+
+// If board.at(position) is a rope
+function isRope(board, position) {
+    return board[position.y][position.x] == GameEnum.symbol.rope;
+}
+
+// If board.at(position) is a brick
+function isBrick(board, position) {
+    return board[position.y][position.x] == GameEnum.symbol.brick;
+}
+
+// Find new position after moving in direction from position
+function getNextPosition(position, direction) {
+    var next = [getPositionOfTopCell, getPositionOfLeftCell, getPositionOfBottomCell, getPositionOfRightCell];
+    return next[direction - 1](position);
+}
+
+// Find new position after up move
+function getPositionOfTopCell(position) {
+    return getPosition(position.x, position.y + 1);
+}
+
+// Find new position after down move
+function getPositionOfBottomCell(position) {
+    return getPosition(position.x, position.y - 1);
+}
+
+// Find new position after right move
+function getPositionOfRightCell(position) {
+    return getPosition(position.x + 1, position.y);
+}
+
+// Find new position after left move
+function getPositionOfLeftCell(position) {
+    return getPosition(position.x - 1, position.y);
+}
+
+// If position on board allows up move
+function isUpMoveValid(board, position) {
     return position.y != board.length - 1 // Not on top row
         && isLadder(board, position) // On ladder
         && !isBrick(board, getPositionOfTopCell(position)); // No brick above
-};
+}
 
-var isDownMoveValid = function (board, position) {
+// If position on board allows down move
+function isDownMoveValid(board, position) {
     return position.y != 0 // Not on bottom row  
         && !isBrick(board, getPositionOfBottomCell(position)); // No brick under position 
-};
+}
 
-var isRightMoveValid = function (board, position) {
+// If position on board allows right move
+function isRightMoveValid(board, position) {
     var onRightColumn = position.x == board[0].length - 1;
     var brickOnRight = isBrick(board, getPositionOfRightCell(position));
 
@@ -71,15 +102,16 @@ var isRightMoveValid = function (board, position) {
         return false;
 
     var bottomCellPosition = getPositionOfBottomCell(position);
-    var canMoveRight = isLadder(board, position) // On ladder
-        || isRope(board, position) // On rope
-        || isBrick(board, bottomCellPosition) // Over brick
+    var canMoveRight = isLadder(board, position)// On ladder
+        || isRope(board, position)              // On rope
+        || isBrick(board, bottomCellPosition)   // Over brick
         || isLadder(board, bottomCellPosition); // Over ladder
 
     return canMoveRight;
-};
+}
 
-var isLeftMoveValid = function (board, position) {  
+// If position on board allows left move
+function isLeftMoveValid(board, position) {  
     var onLeftColumn = position.x == 0;
     var brickOnLeft = isBrick(board, getPositionOfLeftCell(position));
 
@@ -88,44 +120,25 @@ var isLeftMoveValid = function (board, position) {
 
     var bottomCellPosition = getPositionOfBottomCell(position);
     var canMoveLeft = isLadder(board, position) // On ladder
-        || isRope(board, position) // On rope
-        || isBrick(board, bottomCellPosition) // Over brick
+        || isRope(board, position)              // On rope
+        || isBrick(board, bottomCellPosition)   // Over brick
         || isLadder(board, bottomCellPosition); // Over ladder
 
     return canMoveLeft;
-};
+}
 
-var getPosition = function (y, x) {
-    return {x: x, y: y};
-};
+///////////////////////////////////////////////////////////////////////////////
+//  Direction map
 
-var getPositionOfTopCell = function (position) {
-    return getPosition(position.y + 1, position.x);
-};
+function makeDirectionMap(board) {
+    return board.map(function (row, y) {
+        return row.map(function (cell, x) {
+            return getDirections(board, getPosition(x,y));
+        });
+    });
+}
 
-var getPositionOfBottomCell = function (position) {
-    return getPosition(position.y - 1, position.x);
-};
-
-var getPositionOfRightCell = function (position) {
-    return getPosition(position.y, position.x + 1);
-};
-
-var getPositionOfLeftCell = function (position) {
-    return getPosition(position.y, position.x - 1);
-};
-
-var getNextPosition = function (position, direction) {
-    var next = [getPositionOfTopCell, getPositionOfLeftCell, getPositionOfBottomCell, getPositionOfRightCell];
-    return next[direction - 1](position);
-};
-
-var isDirectionValid = function (board, position, direction) {
-    var isValid = [isUpMoveValid, isLeftMoveValid, isDownMoveValid, isRightMoveValid];
-    return isValid[direction - 1](board, position);
-};
-
-var getDirections = function (board, position) {
+function getDirections(board, position) {
     var directions = [];
     GameEnum.directions.forEach(function (direction) {
         if (isDirectionValid(board, position, direction)) {
@@ -133,17 +146,17 @@ var getDirections = function (board, position) {
         }
     });
     return directions;
-};
+}
 
-var makeDirectionMap = function (board) {
-    return board.map(function (row, y) {
-        return row.map(function (cell, x) {
-            return getDirections(board, getPosition(y, x));
-        });
-    });
-};
+function isDirectionValid(board, position, direction) {
+    var isValid = [isUpMoveValid, isLeftMoveValid, isDownMoveValid, isRightMoveValid];
+    return isValid[direction - 1](board, position);
+}
 
-var getPath = function (directionMap, position, end, forbiddenCells, moves) {
+///////////////////////////////////////////////////////////////////////////////
+//  Path finding
+
+function getPath(directionMap, position, end, forbiddenCells, moves) {
     // Exit reached!
     if (position.y == end.y && position.x == end.x) {
         return moves;
@@ -191,7 +204,15 @@ var getPath = function (directionMap, position, end, forbiddenCells, moves) {
 
     // return the best solution
     return bestSolution;
-};
+}
+
+// Concats move made from position and direction to moves
+function addMove (moves, position, direction) {
+    return moves.concat({position: position, direction: direction});
+}
+
+///////////////////////////////////////////////////////////////////////////////
+//  Map solving
 
 // Solve directionMap using dynamic programming.
 // Could use memorization to optimize function, but not necessary
@@ -227,10 +248,54 @@ function solveGame(directionMap, exit, currentPosition, goldBags, goldCollected)
     return solutions[0]; // 0 is the shortest one
 }
 
-var getGoldBagsRemaining = function (goldBags, foundGoldBags) {
+function getGoldBagsRemaining(goldBags, foundGoldBags) {
     return goldBags.filter(function(goldBag) {
         return foundGoldBags.indexOf(goldBag) == -1;
     });
+}
+
+///////////////////////////////////////////////////////////////////////////////
+//  Presolving
+
+// Transform the board from a string to an array of array (rows x columns)
+// where row 0 is at the bottom and column 0 is on the left
+function prepareMap(map) { 
+    return map 
+            .replace(/\n$/, "") // Remove trailing \n if it exists 
+            .split("\n") 
+            .reverse()          // So up is y++ and down y-- (Easier to understand)
+            .map(function (line) { 
+                return Array.from(line); 
+            }); 
+} 
+ 
+// Get player, exit and gold bags positions
+function getMapElements(map) {
+
+    var emptyAccum = {
+        player: undefined,
+        exit: undefined,
+        goldBags : [],
+    };
+
+    return map.reduce((accum, row, y) => { 
+        return row.reduce((accum, elem, x) => { 
+            switch (elem) { 
+                case GameEnum.symbol.player:
+                    accum.player = getPosition(x,y);
+                    break;
+ 
+                case GameEnum.symbol.exit:
+                    accum.exit = getPosition(x,y);
+                    break;
+ 
+                case GameEnum.symbol.goldBag: 
+                    accum.goldBags = accum.goldBags.concat(getPosition(x,y));
+                    break;
+            }
+            return accum;
+        }, accum)
+    }, emptyAccum);
 }
 
 /**
@@ -249,12 +314,12 @@ var getGoldBagsRemaining = function (goldBags, foundGoldBags) {
  */
 function start(map) {
     // increment | reset counters
-    gameInfo.level++;
+    levelNumber++;
     solution.stepIndex = 0;
     solution.steps = [];
 
     // Guard for unsupported levels
-    if (gameInfo.level > 0) {
+    if (levelNumber > 6) {
         console.log("#".repeat(80));
         console.log("#" + " ".repeat(28) + "Your trial as expired." + " ".repeat(28) + "#");
         console.log("#" + " ".repeat(17) + "The free AI only supports the first 6 levels." + " ".repeat(16) + "#");
@@ -273,56 +338,9 @@ function start(map) {
     solution.steps = solveGame(directionMap, elements.exit, elements.player, elements.goldBags, []);
 
     if (solution.steps.length == 0) {
-        console.log("Failed to find solution for level " + gameInfo.level);
+        console.log("Failed to find solution for level " + levelNumber);
         process.exit();
     }
-}
-
-// Transform the board from a string to an array of array (rows x columns)
-// where row 0 is at the bottom and column 0 is on the left 
-function prepareMap(map) { 
-    return map 
-            .replace(/\n$/, "") // Remove trailing \n if it exists 
-            .split("\n") 
-            .reverse()          // So up is y++ and down y-- (Easier to understand)
-            .map(function (line) { 
-                return Array.from(line); 
-            }); 
-} 
- 
-// get player, exit and gold bags positions 
-function getMapElements(map) { 
- 
-    var emptyAccum = {
-        player: {x: 0, y: 0 }, 
-        exit: {x: 0, y: 0 }, 
-        goldBags : [], 
-    }; 
- 
-    return map.reduce((accum, row, y) => { 
-        return row.reduce((accum, elem, x) => { 
-            switch (elem) { 
-                case GameEnum.symbol.player: 
-                    accum.player.x = x; 
-                    accum.player.y = y;
-                    break; 
- 
-                case GameEnum.symbol.exit: 
-                    accum.exit.x = x; 
-                    accum.exit.y = y; 
-                    break; 
- 
-                case GameEnum.symbol.goldBag: 
-                    var pos = { 
-                        x: x, 
-                        y: y 
-                    }; 
-                    accum.goldBags = accum.goldBags.concat(pos);
-                    break; 
-            } 
-            return accum; 
-        }, accum) 
-    }, emptyAccum); 
 }
 
 /**
