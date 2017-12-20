@@ -1,3 +1,12 @@
+/* 
+ * Nom du programme: tp2-graphique.js
+ * Auteurs: Laurent Huberdeau (p1171029) & Mario Dubreuil (p0152501)
+ * Date de création: 2017-DEC-19
+ *
+ * Description: Dessine un niveau du jeu sur un canvas avec les images données.
+ */
+
+
 // Constants
 const blockDimension = 32; // Fraction entière de 32, dimension des images
 const blockKeys = ["-", "&", "#", "$", "H", "S", "X"];
