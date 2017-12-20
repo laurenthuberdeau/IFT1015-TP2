@@ -1,5 +1,12 @@
-// TODO : modifier cette valeur avec la clé secrète
-let room = "laurent";
+/* 
+ * Nom du programme: tp2-ia.js
+ * Auteurs: Laurent Huberdeau (p1171029) & Mario Dubreuil (p0152501)
+ * Date de création: 2017-DEC-19
+ *
+ * Description: Résoud les 6 premiers niveaux de Node runner.
+ */
+
+let room = "Mario-Laurent";
 
 // Game constants
 const GameEnum = {
@@ -373,7 +380,7 @@ function next(state) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-//  Testing
+//  Tests
 
 var level1String = "   $    $      &   $       S \n#############################";
 var level2String = "S       $ $ $      H      \n###################H      \n                   H      \n           &       H      \n##########################";
