@@ -209,7 +209,7 @@ function getPath(directionMap, position, end, forbiddenCells, moves) {
 }
 
 // Concats move made from position and direction to moves
-function addMove (moves, position, direction) {
+function addMove(moves, position, direction) {
     return moves.concat({position: position, direction: direction});
 }
 
@@ -371,6 +371,283 @@ function next(state) {
 
     return cmd;
 }
+
+///////////////////////////////////////////////////////////////////////////////
+//  Testing
+
+var level1String = "   $    $      &   $       S \n#############################";
+var level2String = "S       $ $ $      H      \n###################H      \n                   H      \n           &       H      \n##########################";
+var level3String = "    H  $    ---------- $    S    \n    H#######         #########   \n    H                            \n    H        $   &               \n#################################";
+var level4String = "  $ $$  ------    H       \n#########     ####H       \n                 #H       \n  S              #H   &   \n##########################";
+var level5String = "H#######  H               \nH         H#$             \nH         H#              \nH         H#------        \nH      H &H#      $       \nH      H####     #########\nH      H#                 \nH      H#   $           S \n##########################";
+var level6String = "                     H######\n  S   H#########H    H#    #\n  ####H         H    H# $ $#\n      H         H    H######\n      H   ------H----H     #\nH#########H     H    H     #\nH         H     H    H     #\nH         H#####H    H     #\n##H###H         H###########\n  H   H         H      #####\n  H   H------   H      # $ #\n####  H     #######H########\n      H            H        \n      H        &   H        \n############################\n";
+
+function tests() {
+
+    const level1String = "   $    $      &   $       S \n#############################";
+    const level2String = "S       $ $ $      H      \n###################H      \n                   H      \n           &       H      \n##########################";
+    const level3String = "    H  $    ---------- $    S    \n    H#######         #########   \n    H                            \n    H        $   &               \n#################################";
+    const level4String = "  $ $$  ------    H       \n#########     ####H       \n                 #H       \n  S              #H   &   \n##########################";
+
+    function getPositionTest() {
+        console.assert(getPosition(0,0).x == 0);
+        console.assert(getPosition(0,0).y == 0);
+        console.assert(getPosition(1,0).x == 1);
+        console.assert(getPosition(0,1).y == 1);
+        console.assert(getPosition(-1,0).x == -1);
+        console.assert(getPosition(0,-1).y == -1);
+    }
+
+    function isLadderTest() {
+        console.assert(!isLadder([[' ', ' ', ' '],[' ', 'H', '#'],['H','-','#']], getPosition(0,0)));
+        console.assert(!isLadder([[' ', ' ', ' '],[' ', 'H', '#'],['H','-','#']], getPosition(1,0)));
+        console.assert(!isLadder([[' ', ' ', ' '],[' ', 'H', '#'],['H','-','#']], getPosition(2,0)));
+        console.assert(!isLadder([[' ', ' ', ' '],[' ', 'H', '#'],['H','-','#']], getPosition(0,1)));
+        console.assert(isLadder([[' ', ' ', ' '],[' ', 'H', '#'],['H','-','#']], getPosition(1,1)));
+        console.assert(!isLadder([[' ', ' ', ' '],[' ', 'H', '#'],['H','-','#']], getPosition(2,1)));
+        console.assert(isLadder([[' ', ' ', ' '],[' ', 'H', '#'],['H','-','#']], getPosition(0,2)));
+        console.assert(!isLadder([[' ', ' ', ' '],[' ', 'H', '#'],['H','-','#']], getPosition(1,2)));
+        console.assert(!isLadder([[' ', ' ', ' '],[' ', 'H', '#'],['H','-','#']], getPosition(2,2)));
+    }
+
+    function isRopeTest() {
+        console.assert(!isRope([[' ', ' ', ' '],['-', 'H', '#'],['H','-','#']], getPosition(0,0)));
+        console.assert(!isRope([[' ', ' ', ' '],['-', 'H', '#'],['H','-','#']], getPosition(1,0)));
+        console.assert(!isRope([[' ', ' ', ' '],['-', 'H', '#'],['H','-','#']], getPosition(2,0)));
+        console.assert(isRope([[' ', ' ', ' '],['-', 'H', '#'],['H','-','#']], getPosition(0,1)));
+        console.assert(!isRope([[' ', ' ', ' '],['-', 'H', '#'],['H','-','#']], getPosition(1,1)));
+        console.assert(!isRope([[' ', ' ', ' '],['-', 'H', '#'],['H','-','#']], getPosition(2,1)));
+        console.assert(!isRope([[' ', ' ', ' '],['-', 'H', '#'],['H','-','#']], getPosition(0,2)));
+        console.assert(isRope([[' ', ' ', ' '],['-', 'H', '#'],['H','-','#']], getPosition(1,2)));
+        console.assert(!isRope([[' ', ' ', ' '],['-', 'H', '#'],['H','-','#']], getPosition(2,2)));
+    }
+
+    function isBrickTest() {
+        console.assert(isBrick([['#', ' ', ' '],['-', 'H', '#'],['H','-','#']], getPosition(0,0)));
+        console.assert(!isBrick([['#', ' ', ' '],['-', 'H', '#'],['H','-','#']], getPosition(1,0)));
+        console.assert(!isBrick([['#', ' ', ' '],['-', 'H', '#'],['H','-','#']], getPosition(2,0)));
+        console.assert(!isBrick([['#', ' ', ' '],['-', 'H', '#'],['H','-','#']], getPosition(0,1)));
+        console.assert(!isBrick([['#', ' ', ' '],['-', 'H', '#'],['H','-','#']], getPosition(1,1)));
+        console.assert(isBrick([['#', ' ', ' '],['-', 'H', '#'],['H','-','#']], getPosition(2,1)));
+        console.assert(!isBrick([['#', ' ', ' '],['-', 'H', '#'],['H','-','#']], getPosition(0,2)));
+        console.assert(!isBrick([['#', ' ', ' '],['-', 'H', '#'],['H','-','#']], getPosition(1,2)));
+        console.assert(isBrick([['#', ' ', ' '],['-', 'H', '#'],['H','-','#']], getPosition(2,2)));
+    }
+
+    function getNextPositionTest() {
+        console.assert(getNextPosition(getPosition(0,0), GameEnum.direction.up).x == 0);
+        console.assert(getNextPosition(getPosition(0,0), GameEnum.direction.up).y == 1);
+        console.assert(getNextPosition(getPosition(5,3), GameEnum.direction.up).x == 5);
+        console.assert(getNextPosition(getPosition(5,3), GameEnum.direction.up).y == 4);
+
+        console.assert(getNextPosition(getPosition(0,1), GameEnum.direction.down).x == 0);
+        console.assert(getNextPosition(getPosition(0,1), GameEnum.direction.down).y == 0);
+        console.assert(getNextPosition(getPosition(5,3), GameEnum.direction.down).x == 5);
+        console.assert(getNextPosition(getPosition(5,3), GameEnum.direction.down).y == 2);
+
+        console.assert(getNextPosition(getPosition(1,0), GameEnum.direction.left).x == 0);
+        console.assert(getNextPosition(getPosition(1,0), GameEnum.direction.left).y == 0);
+        console.assert(getNextPosition(getPosition(5,3), GameEnum.direction.left).x == 4);
+        console.assert(getNextPosition(getPosition(5,3), GameEnum.direction.left).y == 3);
+
+        console.assert(getNextPosition(getPosition(0,0), GameEnum.direction.right).x == 1);
+        console.assert(getNextPosition(getPosition(0,0), GameEnum.direction.right).y == 0);
+        console.assert(getNextPosition(getPosition(5,3), GameEnum.direction.right).x == 6);
+        console.assert(getNextPosition(getPosition(5,3), GameEnum.direction.right).y == 3);
+    }
+
+    function getPositionOfTopCellTest() {
+        console.assert(getPositionOfTopCell(getPosition(2,3)).x == 2);
+        console.assert(getPositionOfTopCell(getPosition(2,3)).y == 4);
+        console.assert(getPositionOfTopCell(getPosition(1,7)).x == 1);
+        console.assert(getPositionOfTopCell(getPosition(1,7)).y == 8);
+    }
+
+    function getPositionOfBottomCellTest() {
+        console.assert(getPositionOfBottomCell(getPosition(2,3)).x == 2);
+        console.assert(getPositionOfBottomCell(getPosition(2,3)).y == 2);
+        console.assert(getPositionOfBottomCell(getPosition(1,7)).x == 1);
+        console.assert(getPositionOfBottomCell(getPosition(1,7)).y == 6);
+    }
+
+    function getPositionOfRightCellTest() {
+        console.assert(getPositionOfRightCell(getPosition(2,3)).x == 3);
+        console.assert(getPositionOfRightCell(getPosition(2,3)).y == 3);
+        console.assert(getPositionOfRightCell(getPosition(1,7)).x == 2);
+        console.assert(getPositionOfRightCell(getPosition(1,7)).y == 7);
+    }
+
+    function getPositionOfLeftCellTest() {
+        console.assert(getPositionOfLeftCell(getPosition(2,3)).x == 1);
+        console.assert(getPositionOfLeftCell(getPosition(2,3)).y == 3);
+        console.assert(getPositionOfLeftCell(getPosition(1,7)).x == 0);
+        console.assert(getPositionOfLeftCell(getPosition(1,7)).y == 7);
+    }
+
+    function isUpMoveValidTest() {
+        var board = [['#','#','#'], ['H', ' ', ' '],['H', '#', ' '],['H',' ','-']];
+        console.assert(isUpMoveValid(board, getPosition(0,1)));
+        console.assert(!isUpMoveValid(board, getPosition(1,1)));
+        console.assert(!isUpMoveValid(board, getPosition(2,1)));
+        console.assert(isUpMoveValid(board, getPosition(0,2)));
+        console.assert(!isUpMoveValid(board, getPosition(1,2)));
+        console.assert(!isUpMoveValid(board, getPosition(2,2)));
+        console.assert(!isUpMoveValid(board, getPosition(0,3)));
+        console.assert(!isUpMoveValid(board, getPosition(1,3)));
+        console.assert(!isUpMoveValid(board, getPosition(2,3)));
+    }
+
+    function isDownMoveValidTest() {
+        var board = [['#','#','#'], ['H', ' ', ' '],['H', '#', ' '],['H',' ','-']];
+        console.assert(!isDownMoveValid(board, getPosition(0,1)));
+        console.assert(!isDownMoveValid(board, getPosition(1,1)));
+        console.assert(!isDownMoveValid(board, getPosition(2,1)));
+        console.assert(isDownMoveValid(board, getPosition(0,2)));
+        console.assert(isDownMoveValid(board, getPosition(1,2)));
+        console.assert(isDownMoveValid(board, getPosition(2,2)));
+        console.assert(isDownMoveValid(board, getPosition(0,3)));
+        console.assert(!isDownMoveValid(board, getPosition(1,3)));
+        console.assert(isDownMoveValid(board, getPosition(2,3)));
+    }
+
+    function isRightMoveValidTest() {
+        var board = [['#','#','#'], ['H', ' ', ' '],['H', '#', ' '],['H',' ','-']];
+        console.assert(isRightMoveValid(board, getPosition(0,1)));
+        console.assert(isRightMoveValid(board, getPosition(1,1)));
+        console.assert(!isRightMoveValid(board, getPosition(2,1)));
+        console.assert(!isRightMoveValid(board, getPosition(0,2)));
+        console.assert(!isRightMoveValid(board, getPosition(1,2)));
+        console.assert(!isRightMoveValid(board, getPosition(2,2)));
+        console.assert(isRightMoveValid(board, getPosition(0,3)));
+        console.assert(isRightMoveValid(board, getPosition(1,3)));
+        console.assert(!isRightMoveValid(board, getPosition(2,3)));
+    }
+
+    function isLeftMoveValidTest() {
+        var board = [['#','#','#'], ['H', ' ', ' '],['H', '#', ' '],['H',' ','-']];
+        console.assert(!isLeftMoveValid(board, getPosition(0,1)));
+        console.assert(isLeftMoveValid(board, getPosition(1,1)));
+        console.assert(isLeftMoveValid(board, getPosition(2,1)));
+        console.assert(!isLeftMoveValid(board, getPosition(0,2)));
+        console.assert(!isLeftMoveValid(board, getPosition(1,2)));
+        console.assert(!isLeftMoveValid(board, getPosition(2,2)));
+        console.assert(!isLeftMoveValid(board, getPosition(0,3)));
+        console.assert(isLeftMoveValid(board, getPosition(1,3)));
+        console.assert(isLeftMoveValid(board, getPosition(2,3)));
+    }
+
+    function makeDirectionMapTest() {
+        var board = [['#','#','#'], ['H', ' ', ' '],['H', '#', ' '],['H',' ','-']];
+        console.assert(makeDirectionMap(board)+"" == ",,,1,4,2,4,2,1,3,3,3,3,4,2,4,2,3");
+
+        console.assert(makeDirectionMap(prepareMap(level1String))+"" == 
+            ",,,,,,,,,,,,,,,,,,,,,,,,,,,,,4,2,4,2,4,2,4,2,4,2,4,2,4,2,4,2,4,2,4,2,4,2,4,2,4,2,4,2,4,2,4,2,4,2,4,2,4,2,4,2,4,2,4,2,4,2,4,2,4,2,4,2,4,2,4,2");
+
+        console.assert(makeDirectionMap(prepareMap(level2String))+"" == 
+        ",,,,,,,,,,,,,,,,,,,,,,,,,,4,2,4,2,4,2,4,2,4,2,4,2,4,2,4,2,4,2,4,2,4,2,4,2,4,2,4,2,4,2,4,2,4,2,4,2,4,1,2,4,2,4,2,4,2,4,2,4,2,4,2,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,1,2,3,4,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,1,3,4,3,3,3,3,3,3,4,2,4,2,4,2,4,2,4,2,4,2,4,2,4,2,4,2,4,2,4,2,4,2,4,2,4,2,4,2,4,2,4,2,4,2,4,2,3,4,3,3,3,3,3,3");
+
+        console.assert(makeDirectionMap(prepareMap(level3String))+"" == 
+        ",,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,4,2,4,2,4,2,4,1,2,4,2,4,2,4,2,4,2,4,2,4,2,4,2,4,2,4,2,4,2,4,2,4,2,4,2,4,2,4,2,4,2,4,2,4,2,4,2,4,2,4,2,4,2,4,2,4,2,4,2,4,2,4,2,4,2,3,3,3,3,1,2,3,4,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,1,2,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,2,3,4,2,4,2,4,2,4,2,4,2,4,2,4,2,4,2,3,4,2,3,4,2,3,4,2,3,4,2,3,4,2,3,4,2,3,4,2,3,4,2,3,4,2,4,2,4,2,4,2,4,2,4,2,4,2,4,2,4,2,4,3,3,3");
+        
+        console.assert(makeDirectionMap(prepareMap(level4String))+"" == 
+            ",,,,,,,,,,,,,,,,,,,,,,,,,,4,2,4,2,4,2,4,2,4,2,4,2,4,2,4,2,4,2,4,2,4,2,4,2,4,2,4,2,4,2,4,2,2,4,1,4,2,4,2,4,2,4,2,4,2,4,2,4,2,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,2,4,1,3,4,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,4,1,3,4,3,3,3,3,3,3,3,4,2,4,2,4,2,4,2,4,2,4,2,4,2,4,2,4,2,3,4,2,3,4,2,3,4,2,3,4,2,3,4,2,4,2,4,2,4,2,4,2,3,4,3,3,3,3,3,3,3");
+    }
+
+    function getDirectionsTest() {
+        console.assert(getDirections(prepareMap(level1String), getPosition(0,0)) == "");
+        console.assert(getDirections(prepareMap(level1String), getPosition(3,1)) == "2,4");
+        console.assert(getDirections(prepareMap(level1String), getPosition(1,1)) == "2,4");
+        console.assert(getDirections(prepareMap(level1String), getPosition(4,0)) == "");
+    
+        console.assert(getDirections(prepareMap(level2String), getPosition(0,0)) == "");
+        console.assert(getDirections(prepareMap(level2String), getPosition(5,1)) == "2,4");
+        console.assert(getDirections(prepareMap(level2String), getPosition(5,2)) == "3");
+        console.assert(getDirections(prepareMap(level2String), getPosition(1,2)) == "3");
+    
+        console.assert(getDirections(prepareMap(level3String), getPosition(0,0)) == "");
+        console.assert(getDirections(prepareMap(level3String), getPosition(5,4)) == "2,4");
+        console.assert(getDirections(prepareMap(level3String), getPosition(1,2)) == "3");
+        console.assert(getDirections(prepareMap(level3String), getPosition(32,4)) == "3");
+    }
+
+    function solveGameTest() {
+        var board1 = prepareMap(level1String);
+        var level1Elements = getMapElements(board1);
+        console.assert(JSON.stringify(solveGame(makeDirectionMap(board1), level1Elements.exit, level1Elements.player, level1Elements.goldBags, [])) == 
+            '[{"position":{"x":15,"y":1},"direction":2},{"position":{"x":14,"y":1},"direction":2},{"position":{"x":13,"y":1},"direction":2},{"position":{"x":12,"y":1},"direction":2},{"position":{"x":11,"y":1},"direction":2},{"position":{"x":10,"y":1},"direction":2},{"position":{"x":9,"y":1},"direction":2},{"position":{"x":8,"y":1},"direction":2},{"position":{"x":7,"y":1},"direction":2},{"position":{"x":6,"y":1},"direction":2},{"position":{"x":5,"y":1},"direction":2},{"position":{"x":4,"y":1},"direction":2},{"position":{"x":3,"y":1},"direction":4},{"position":{"x":4,"y":1},"direction":4},{"position":{"x":5,"y":1},"direction":4},{"position":{"x":6,"y":1},"direction":4},{"position":{"x":7,"y":1},"direction":4},{"position":{"x":8,"y":1},"direction":4},{"position":{"x":9,"y":1},"direction":4},{"position":{"x":10,"y":1},"direction":4},{"position":{"x":11,"y":1},"direction":4},{"position":{"x":12,"y":1},"direction":4},{"position":{"x":13,"y":1},"direction":4},{"position":{"x":14,"y":1},"direction":4},{"position":{"x":15,"y":1},"direction":4},{"position":{"x":16,"y":1},"direction":4},{"position":{"x":17,"y":1},"direction":4},{"position":{"x":18,"y":1},"direction":4},{"position":{"x":19,"y":1},"direction":4},{"position":{"x":20,"y":1},"direction":4},{"position":{"x":21,"y":1},"direction":4},{"position":{"x":22,"y":1},"direction":4},{"position":{"x":23,"y":1},"direction":4},{"position":{"x":24,"y":1},"direction":4},{"position":{"x":25,"y":1},"direction":4},{"position":{"x":26,"y":1},"direction":4}]');
+
+        var board2 = prepareMap(level2String);
+        var level2Elements = getMapElements(board2);
+        console.assert(JSON.stringify(solveGame(makeDirectionMap(board2), level2Elements.exit, level2Elements.player, level2Elements.goldBags, [])) == 
+            '[{"position":{"x":11,"y":1},"direction":4},{"position":{"x":12,"y":1},"direction":4},{"position":{"x":13,"y":1},"direction":4},{"position":{"x":14,"y":1},"direction":4},{"position":{"x":15,"y":1},"direction":4},{"position":{"x":16,"y":1},"direction":4},{"position":{"x":17,"y":1},"direction":4},{"position":{"x":18,"y":1},"direction":4},{"position":{"x":19,"y":1},"direction":1},{"position":{"x":19,"y":2},"direction":1},{"position":{"x":19,"y":3},"direction":1},{"position":{"x":19,"y":4},"direction":2},{"position":{"x":18,"y":4},"direction":2},{"position":{"x":17,"y":4},"direction":2},{"position":{"x":16,"y":4},"direction":2},{"position":{"x":15,"y":4},"direction":2},{"position":{"x":14,"y":4},"direction":2},{"position":{"x":13,"y":4},"direction":2},{"position":{"x":12,"y":4},"direction":2},{"position":{"x":11,"y":4},"direction":2},{"position":{"x":10,"y":4},"direction":2},{"position":{"x":9,"y":4},"direction":2},{"position":{"x":8,"y":4},"direction":2},{"position":{"x":7,"y":4},"direction":2},{"position":{"x":6,"y":4},"direction":2},{"position":{"x":5,"y":4},"direction":2},{"position":{"x":4,"y":4},"direction":2},{"position":{"x":3,"y":4},"direction":2},{"position":{"x":2,"y":4},"direction":2},{"position":{"x":1,"y":4},"direction":2}]');
+
+        var level3String = "    H  $    ---------- $    S    \n    H#######         #########   \n    H                            \n    H        $   &               \n#################################";
+        var board3 = prepareMap(level3String);
+        var level3Elements = getMapElements(board3);
+        console.assert(JSON.stringify(solveGame(makeDirectionMap(board3), level3Elements.exit, level3Elements.player, level3Elements.goldBags, [])) == 
+            '[{"position":{"x":17,"y":1},"direction":2},{"position":{"x":16,"y":1},"direction":2},{"position":{"x":15,"y":1},"direction":2},{"position":{"x":14,"y":1},"direction":2},{"position":{"x":13,"y":1},"direction":2},{"position":{"x":12,"y":1},"direction":2},{"position":{"x":11,"y":1},"direction":2},{"position":{"x":10,"y":1},"direction":2},{"position":{"x":9,"y":1},"direction":2},{"position":{"x":8,"y":1},"direction":2},{"position":{"x":7,"y":1},"direction":2},{"position":{"x":6,"y":1},"direction":2},{"position":{"x":5,"y":1},"direction":2},{"position":{"x":4,"y":1},"direction":1},{"position":{"x":4,"y":2},"direction":1},{"position":{"x":4,"y":3},"direction":1},{"position":{"x":4,"y":4},"direction":4},{"position":{"x":5,"y":4},"direction":4},{"position":{"x":6,"y":4},"direction":4},{"position":{"x":7,"y":4},"direction":4},{"position":{"x":8,"y":4},"direction":4},{"position":{"x":9,"y":4},"direction":4},{"position":{"x":10,"y":4},"direction":4},{"position":{"x":11,"y":4},"direction":4},{"position":{"x":12,"y":4},"direction":4},{"position":{"x":13,"y":4},"direction":4},{"position":{"x":14,"y":4},"direction":4},{"position":{"x":15,"y":4},"direction":4},{"position":{"x":16,"y":4},"direction":4},{"position":{"x":17,"y":4},"direction":4},{"position":{"x":18,"y":4},"direction":4},{"position":{"x":19,"y":4},"direction":4},{"position":{"x":20,"y":4},"direction":4},{"position":{"x":21,"y":4},"direction":4},{"position":{"x":22,"y":4},"direction":4},{"position":{"x":23,"y":4},"direction":4},{"position":{"x":24,"y":4},"direction":4},{"position":{"x":25,"y":4},"direction":4},{"position":{"x":26,"y":4},"direction":4},{"position":{"x":27,"y":4},"direction":4}]');
+    }
+
+    function getGoldBagsRemainingTest() {
+        
+    }
+
+    function prepareMapTest() {
+        console.assert(prepareMap(level1String) == 
+            "#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#, , , ,$, , , , ,$, , , , , , ,&, , , ,$, , , , , , , ,S, ");
+
+        console.assert(prepareMap(level2String) == 
+            "#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#, , , , , , , , , , , ,&, , , , , , , ,H, , , , , , , , , , , , , , , , , , , , , , , , , ,H, , , , , , ,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,H, , , , , , ,S, , , , , , , ,$, ,$, ,$, , , , , , ,H, , , , , , ");
+
+        console.assert(prepareMap(level3String) == 
+            "#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#,#, , , , ,H, , , , , , , , ,$, , , ,&, , , , , , , , , , , , , , , , , , , ,H, , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , ,H,#,#,#,#,#,#,#, , , , , , , , , ,#,#,#,#,#,#,#,#,#, , , , , , , ,H, , ,$, , , , ,-,-,-,-,-,-,-,-,-,-, ,$, , , , ,S, , , , ");
+    }
+
+    function getMapElementsTest() {
+        console.assert(getMapElements(prepareMap(level1String)).player.x == 15);
+        console.assert(getMapElements(prepareMap(level1String)).player.y == 1);
+        console.assert(getMapElements(prepareMap(level1String)).exit.x == 27);
+        console.assert(getMapElements(prepareMap(level1String)).exit.y == 1);
+        console.assert(JSON.stringify(getMapElements(prepareMap(level1String)).goldBags) == 
+            '[{"x":3,"y":1},{"x":8,"y":1},{"x":19,"y":1}]');
+
+        console.assert(getMapElements(prepareMap(level2String)).player.x == 11);
+        console.assert(getMapElements(prepareMap(level2String)).player.y == 1);
+        console.assert(getMapElements(prepareMap(level2String)).exit.x == 0);
+        console.assert(getMapElements(prepareMap(level2String)).exit.y == 4);
+        console.assert(JSON.stringify(getMapElements(prepareMap(level2String)).goldBags) == 
+            '[{"x":8,"y":4},{"x":10,"y":4},{"x":12,"y":4}]');
+
+        console.assert(getMapElements(prepareMap(level3String)).player.x == 17);
+        console.assert(getMapElements(prepareMap(level3String)).player.y == 1);
+        console.assert(getMapElements(prepareMap(level3String)).exit.x == 28);
+        console.assert(getMapElements(prepareMap(level3String)).exit.y == 4);
+        console.assert(JSON.stringify(getMapElements(prepareMap(level3String)).goldBags) == 
+            '[{"x":13,"y":1},{"x":7,"y":4},{"x":23,"y":4}]');
+    }
+
+    getPositionTest();
+    isLadderTest();
+    isRopeTest();
+    isBrickTest();
+    getNextPositionTest();
+    getPositionOfTopCellTest();
+    getPositionOfBottomCellTest();
+    getPositionOfRightCellTest();
+    getPositionOfLeftCellTest();
+    isUpMoveValidTest();
+    isDownMoveValidTest();
+    isRightMoveValidTest();
+    isLeftMoveValidTest();
+    makeDirectionMapTest();
+    getDirectionsTest();
+    solveGameTest();
+    getGoldBagsRemainingTest();
+    prepareMapTest();
+    getMapElementsTest();
+}
+
+tests();
 
 // XXX Important : ne pas modifier ces lignes
 module.exports.room = room;
