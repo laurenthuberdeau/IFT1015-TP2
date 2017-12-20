@@ -97,8 +97,9 @@ function isDownMoveValid(board, position) {
 function isRightMoveValid(board, position) {
     var onRightColumn = position.x == board[0].length - 1;
     var brickOnRight = isBrick(board, getPositionOfRightCell(position));
+    var onBottomRow = position.y == 0;
 
-    if (onRightColumn || brickOnRight)
+    if (onRightColumn || brickOnRight || onBottomRow)
         return false;
 
     var bottomCellPosition = getPositionOfBottomCell(position);
@@ -114,8 +115,9 @@ function isRightMoveValid(board, position) {
 function isLeftMoveValid(board, position) {  
     var onLeftColumn = position.x == 0;
     var brickOnLeft = isBrick(board, getPositionOfLeftCell(position));
+    var onBottomRow = position.y == 0;
 
-    if (onLeftColumn || brickOnLeft)
+    if (onLeftColumn || brickOnLeft || onBottomRow)
         return false;
 
     var bottomCellPosition = getPositionOfBottomCell(position);
