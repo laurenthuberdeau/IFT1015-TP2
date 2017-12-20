@@ -3,9 +3,13 @@ const blockDimension = 32; // Fraction entière de 32, dimension des images
 const blockKeys = ["-", "&", "#", "$", "H", "S", "X"];
 const imgDirectory = "img/";
 
-var draw = function (map) {
-    document.getElementById("grid-ascii").innerHTML = map;
+// Used to know if canvas needs to be recreated
+const canvasDimensions = {
+    width: undefined,
+    height: undefined
+};
 
+var draw = function (map) {
     // If every image is loaded
     var allImagesReady = blockKeys
         .map(getImage)
@@ -18,10 +22,17 @@ var draw = function (map) {
 
     var lines = map.split("\n"); // Split map in lines
 
-    // TODO :: Resize canvas based on map size
+    var canvas = document.getElementById("canvas");
 
-    var canvas = createCanvas(lines.length * blockDimension, lines[0].length * blockDimension);
-    drawCanvas(canvas.getContext("2d"), lines);
+    var canvasWidth = lines[0].length;
+    var canvasHeight = lines.length;
+    if (canvasDimensions.width != canvasWidth || canvasDimensions.height != canvasHeight) {
+        canvasDimensions.width = canvasWidth;
+        canvasDimensions.height = canvasHeight;
+        canvas = createCanvas(canvasHeight * blockDimension, canvasWidth * blockDimension);
+    }
+
+    drawCanvas(canvas, lines);
 }
 
 function createCanvas(height, width) {
@@ -34,21 +45,22 @@ function createCanvas(height, width) {
     canvas.height = height;
     canvas.width = width;
 
-    // Put green background
-    var ctx = canvas.getContext('2d');
-    ctx.fillStyle = "#afa";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
     return canvas;
 }
 
-function drawCanvas(canvasCtx, lines) {
+function drawCanvas(canvas, lines) {
+    var context = canvas.getContext("2d");
+
+    // Put green background + clear canvas
+    context.fillStyle = "#afa";
+    context.fillRect(0, 0, canvas.width, canvas.height);
+
     lines.forEach((line, i) => {
         line.split("").forEach((char, j) => {
 
             // Do nothing if char doesn't represent a block. i.e a space or something else
             if (blockKeys.indexOf(char) == -1)
-                return; 
+                return;
             
             var img = getImage(char);
             var x = j * blockDimension;
@@ -56,7 +68,7 @@ function drawCanvas(canvasCtx, lines) {
 
             // Don't draw image if it's not loaded yet
             if (img.complete)
-                canvasCtx.drawImage(img, x, y, blockDimension, blockDimension);
+                context.drawImage(img, x, y, blockDimension, blockDimension);
         });
     });
 }
